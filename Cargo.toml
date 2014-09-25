@@ -1,0 +1,9 @@
+[package]
+
+name = "prompt"
+version = "0.0.1"
+authors = ["Ben Navetta <ben.navetta@gmail.com>"]
+
+[dependencies.docopt_macros]
+git = "git://github.com/docopt/docopt.rs"
+
