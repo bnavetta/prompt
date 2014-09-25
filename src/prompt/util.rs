@@ -1,6 +1,7 @@
-use std::time::duration;
+use std::time::duration::Duration;
+use std::os;
 
-pub fn human_time(duration: duration::Duration) -> String
+pub fn human_time(duration: Duration) -> String
 {
 	let mut result = String::new();
 
@@ -12,20 +13,34 @@ pub fn human_time(duration: duration::Duration) -> String
 	// I feel like there has to be a better way than to_string().as_slice() - can I just add the actual String?
 	if days > 0
 	{
-		result = result.append(days.to_string().as_slice()).append("d ");
+		result.push_str(days.to_string().as_slice());
+		result.push_str("d ");
 	}
 
 	if hours > 0
 	{
-		result = result.append(hours.to_string().as_slice()).append("h ");
+		result.push_str(hours.to_string().as_slice());
+		result.push_str("h ");
 	}
 
 	if minutes > 0
 	{
-		result = result.append(minutes.to_string().as_slice()).append("m ");
+		result.push_str(minutes.to_string().as_slice());
+		result.push_str("m ");
 	}
 
-	result.append(seconds.to_string().as_slice()).append("s")
+	result.push_str(seconds.to_string().as_slice());
+	result.push_str("s");
+
+	result
+}
+
+pub fn is_ssh() -> bool
+{
+	match os::getenv("SSH_CONNECTION") {
+		Some(_) => true,
+		None    => false
+	}
 }
 
 #[cfg(test)]
