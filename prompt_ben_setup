@@ -1,0 +1,29 @@
+# vim: set ft=sh
+#
+# Initialization script for my shell prompt
+#
+
+prompt_ben_precmd() {
+}
+
+prompt_ben_preexec() {
+}
+
+prompt_ben_setup() {
+	setopt LOCAL_OPTIONS
+	unsetopt XTRACE KSH_ARRAYS
+
+	prompt_opts=(cr percent subst)
+
+	# Load zsh hook functions
+	autoload -Uz add-zsh-hook
+
+	# Needed for execution timing
+	zmodload zsh/datetime
+
+	add-zsh-hook precmd prompt_ben_precmd
+	add-zsh-hook preexec prompt_ben_preexec
+
+	PROMPT='$(prompt_ben prompt --exit=$?)'
+	RPROMPT='$(prompt_ben rprompt)'
+}
