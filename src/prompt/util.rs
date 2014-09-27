@@ -43,6 +43,10 @@ pub fn is_ssh() -> bool
 	}
 }
 
+pub fun username() -> String {
+	
+}
+
 #[cfg(test)]
 mod tests {
 	use super::human_time;

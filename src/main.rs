@@ -6,8 +6,6 @@ extern crate term;
 extern crate time;
 
 use docopt::FlagParser;
-use std::time::duration::Duration;
-use std::io::timer;
 // use prompt::util;
 
 mod prompt;
@@ -26,9 +24,20 @@ Options:
 
 fn main()
 {
-    let start = time::get_time().sec;
-
 	let args: Args = FlagParser::parse().unwrap_or_else(|e| e.exit());
+
+    if args.flag_version
+    {
+        println!("prompt {}.{}.{}{}",
+            env!("CARGO_PKG_VERSION_MAJOR"),
+            env!("CARGO_PKG_VERSION_MINOR"),
+            env!("CARGO_PKG_VERSION_PATCH"),
+            option_env!("CARGO_PKG_VERSION_PRE").unwrap_or(""));
+    }
+    else if args.cmd_preexec
+    {
+        println!("{}", prompt::preexec(args.arg_command.as_slice()));
+    }
 
 	let mut t = term::stdout().unwrap();
 
@@ -40,10 +49,4 @@ fn main()
         true  => println!("Running in SSH"),
         false => println!("Not running in SSH")
     }
-
-    timer::sleep(Duration::seconds(5));
-
-    let end = time::get_time().sec;
-
-    println!("Time: {}", prompt::util::human_time(Duration::seconds(end - start)));
 }
