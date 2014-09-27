@@ -1,4 +1,6 @@
-pub use self::preexec::preexec as preexec;
+pub use self::hook::{preexec};
+pub use self::platform::{username,hostname};
 
 pub mod util;
-pub mod preexec;
+mod hook;
+mod platform;
