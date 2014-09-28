@@ -2,8 +2,6 @@
 extern crate serialize;
 #[phase(plugin)] extern crate docopt_macros;
 extern crate docopt;
-extern crate term;
-extern crate time;
 
 use docopt::FlagParser;
 // use prompt::util;
@@ -15,14 +13,16 @@ Usage:
     prompt_ben prompt --exit=<status>
     prompt_ben rprompt [options]
     prompt_ben preexec <command>
+    prompt_ben precmd --exec-time=<time>
     prompt_ben -h | --help
     prompt_ben --version
 
 Options:
-    -h, --help        Show this message
-    --version         Show version
-    --exit=<status>   Exit status of the last command executed
-", flag_exit: Option<int>)
+    -h, --help          Show this message
+    --version           Show version
+    --exit=<status>     Exit status of the last command executed
+	--exec-time=<time>  Time taken to execute the last command
+", flag_exit: Option<int>, flag_exec_time: Option<int>)
 
 fn main()
 {
@@ -44,15 +44,7 @@ fn main()
     else if args.cmd_preexec {
         prompt::preexec(args.arg_command.as_slice());
     }
-
-	// let mut t = term::stdout().unwrap();
-
-	// t.fg(term::color::GREEN).unwrap();
-	// (write!(t, "{}", args)).unwrap();
-	// t.reset().unwrap();
-
-    // match prompt::util::is_ssh() {
-        // true  => println!("Running in SSH"),
-        // false => println!("Not running in SSH")
-    // }
+	else if args.cmd_precmd {
+		prompt::precmd(args.flag_exec_time.unwrap() as i64);
+	}
 }

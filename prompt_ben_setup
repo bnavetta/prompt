@@ -4,12 +4,28 @@
 #
 
 prompt_ben_precmd() {
+	# Based on pure.zsh
+	local stop=$EPOCHSECONDS
+	local start=${cmd_timestamp:-$stop}
+	local elapsed=$(($stop-$start))
+	# echo $elapsed
+
+	local preprompt="$(prompt_ben precmd --exec-time=${elapsed})"
+	print -P $preprompt
+
+	# in case preexec isn't triggered
+	unset cmd_timestamp
 }
 
 prompt_ben_preexec() {
+	cmd_timestamp=$EPOCHSECONDS
+	# echo "Preexec triggered"
 }
 
 prompt_ben_setup() {
+	# Prevent percent sign from showing up if prompt doesn't end with newline
+	export PROMPT_EOL_MARK=''
+
 	setopt LOCAL_OPTIONS
 	unsetopt XTRACE KSH_ARRAYS
 
