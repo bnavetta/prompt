@@ -15,10 +15,16 @@ pub fn precmd(execution_seconds: i64) {
 
 	let mut preprompt = String::new();
 
+	if util::is_ssh() {
+		preprompt.push_str("[");
+		preprompt.push_str(term::foreground("%n", config::COLOR_USER).as_slice());
+		preprompt.push_str("@");
+		preprompt.push_str(term::foreground("%m", config::COLOR_HOST).as_slice());
+		preprompt.push_str("] ");
+	}
+
 	if execution_time > config::max_exec_time() {
 		let time = util::human_time(execution_time);
-		// println!("{}", term::foreground(time.as_slice(), config::COLOR_EXEC_TIME));
-		// print!("\n{}s\n", execution_time.num_seconds());
 		preprompt.push_str(term::foreground(time.as_slice(), config::COLOR_EXEC_TIME).as_slice());
 	}
 
