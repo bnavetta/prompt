@@ -15,6 +15,14 @@ pub fn precmd(execution_seconds: i64) {
 
 	let mut preprompt = String::new();
 
+	let homedir = os::homedir().unwrap();
+	let mut current_path = os::getcwd();
+	if homedir.is_ancestor_of(&current_path) {
+		current_path = Path::new("~").join(current_path.path_relative_from(&homedir).unwrap());
+	}
+	preprompt.push_str(term::foreground(current_path.as_str().unwrap(), config::COLOR_PATH).as_slice());
+	preprompt.push_str(" ");
+
 	if util::is_ssh() {
 		preprompt.push_str("[");
 		preprompt.push_str(term::foreground("%n", config::COLOR_USER).as_slice());
