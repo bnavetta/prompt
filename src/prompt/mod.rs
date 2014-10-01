@@ -4,5 +4,6 @@ pub use self::platform::{username,hostname};
 pub mod config;
 pub mod util;
 pub mod term;
+pub mod git;
 mod hook;
 mod platform;

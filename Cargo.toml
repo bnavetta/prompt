@@ -6,3 +6,7 @@ authors = ["Ben Navetta <ben.navetta@gmail.com>"]
 
 [dependencies.docopt_macros]
 git = "git://github.com/docopt/docopt.rs"
+
+[dependencies.git2]
+git = "git://github.com/alexcrichton/git2-rs"
+

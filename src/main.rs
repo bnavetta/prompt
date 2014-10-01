@@ -1,3 +1,4 @@
+#![feature(unsafe_destructor)]
 #![feature(phase)]
 extern crate serialize;
 #[phase(plugin)] extern crate docopt_macros;
@@ -27,6 +28,8 @@ Options:
 fn main()
 {
 	let args: Args = FlagParser::parse().unwrap_or_else(|e| e.exit());
+
+    prompt::git::test();
 
     if args.flag_version {
         println!("prompt {}.{}.{}{}",
