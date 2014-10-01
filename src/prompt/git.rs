@@ -62,6 +62,8 @@ extern {
 	fn git_diff_tree_to_workdir_with_index(diff: *mut *mut git_diff, repo: *mut git_repository, old_tree: *mut git_tree, opts: *const git_diff_options) -> c_int;
 	fn git_diff_free(diff: *mut git_diff);
 
+	fn git_diff_num_deltas(diff: *const git_diff) -> size_t;
+
 	fn git_diff_get_stats(diff_stats: *mut *mut git_diff_stats, diff: *mut git_diff) -> c_int;
 	fn git_diff_stats_deletions(diff_stats: *const git_diff_stats) -> size_t;
 	fn git_diff_stats_files_changed(diff_stats: *const git_diff_stats) -> size_t;
@@ -98,6 +100,12 @@ impl Diff {
 				}
 				_ => Ok(DiffStats::from_raw(raw_stats))
 			}
+		}
+	}
+
+	pub fn num_deltas(&self) -> uint {
+		unsafe {
+			git_diff_num_deltas(self.raw as *const git_diff) as uint
 		}
 	}
 }
@@ -167,37 +175,33 @@ pub fn diff_tree_to_workdir_with_index(repo: &Repository, tree: &Tree) -> Result
 	}
 }
 
+pub fn diff_head_to_workdir(repo: Repository) -> Result<Diff, Error> {
+	let head_oid = try!(repo.refname_to_id("HEAD"));
+	let head_commit = try!(repo.find_commit(head_oid));
+	let head_tree = try!(repo.find_tree(head_commit.tree_id()));
+	diff_tree_to_workdir_with_index(&repo, &head_tree)
+}
+
 pub fn test() {
 	let path = os::getcwd();
+	// let repo = try!(Repository::open(&path));
 	let repo = match Repository::open(&path) {
 		Ok(repo) => repo,
-		Err(e) => fail!("Failed to open '{}': {}", path.display(), e),
+		Err(e) => fail!("Unable to open repository: {}", e),
 	};
+	println!("Repo: {}", repo.state());
 
-	let head_oid = match repo.refname_to_id("HEAD") {
-		Ok(head) => head,
-		Err(e) => fail!("Failed to obtain HEAD OID: {}", e),
-	};
-
-	let head_commit = match repo.find_commit(head_oid) {
-		Ok(commit) => commit,
-		Err(e) => fail!("Failed to find HEAD commit: {}", e),
-	};
-
-	let tree = match repo.find_tree(head_commit.tree_id()) {
-		Ok(tree) => tree,
-		Err(e) => fail!("Failed to find tree from commit: {}", e),
-	};
-
-	let diff = match diff_tree_to_workdir_with_index(&repo, &tree) {
+	let diff = match diff_head_to_workdir(repo) {
 		Ok(diff) => diff,
-		Err(e) => fail!("Failed to compute diff: {}", e),
+		Err(e) => fail!("Unable to calculate diff: {}", e),
 	};
+	println!("Computed diff");
 
-	let stats = match diff.stats() {
-		Ok(stats) => stats,
-		Err(e) => fail!("Failed to obtain diff stats: {}", e),
-	};
+	// let stats = match diff.stats() {
+		// Ok(stats) => stats,
+		// Err(e) => fail!("Failed to obtain diff stats: {}", e),
+	// };
+	// println!("Insertions: {}\nDeletions: {}\nFiles Changed: {}", stats.insertions(), stats.deletions(), stats.files_changed());
 
-	println!("Insertions: {}\nDeletions: {}\nFiles Changed: {}", stats.insertions(), stats.deletions(), stats.files_changed());
+	println!("There are {} deltas", diff.num_deltas());
 }
