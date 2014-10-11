@@ -1,7 +1,7 @@
 use std::os;
 
-use super::git2::{Repository, Error, Reference};
-use super::git::{Diff,diff_head_to_workdir};
+use super::git2::{Repository, Error};
+use super::git::diff_head_to_workdir;
 
 pub struct VCSInfo
 {

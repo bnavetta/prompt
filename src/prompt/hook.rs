@@ -4,7 +4,7 @@ use std::time::duration::Duration;
 use super::config;
 use super::term;
 use super::util;
-use super::vcs::{VCSInfo, vcs_info};
+use super::vcs::vcs_info;
 
 pub fn preexec(command: &str)
 {

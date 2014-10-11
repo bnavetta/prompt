@@ -1,6 +1,5 @@
 #![allow(non_camel_case_types)]
 
-use std::os;
 use std::kinds::marker;
 use super::libc::{c_void, c_char, c_int, c_uint, size_t, uint32_t, uint16_t};
 
@@ -9,8 +8,8 @@ use super::libgit2::{git_repository, git_tree, git_submodule_ignore_t, git_strar
 use super::git2::{Repository, Tree, Error};
 
 pub enum git_diff {}
-pub enum git_diff_stats {}
 
+#[allow(dead_code)]
 pub enum git_delta_t {
 	GIT_DELTA_UNMODIFIED = 0,
 	GIT_DELTA_ADDED = 1,
@@ -57,12 +56,6 @@ extern {
 	fn git_diff_free(diff: *mut git_diff);
 
 	fn git_diff_num_deltas(diff: *const git_diff) -> size_t;
-
-	fn git_diff_get_stats(diff_stats: *mut *mut git_diff_stats, diff: *mut git_diff) -> c_int;
-	fn git_diff_stats_deletions(diff_stats: *const git_diff_stats) -> size_t;
-	fn git_diff_stats_files_changed(diff_stats: *const git_diff_stats) -> size_t;
-	fn git_diff_stats_insertions(diff_stats: *const git_diff_stats) -> size_t;
-	fn git_diff_stats_free(diff_stats: *mut git_diff_stats);
 }
 
 pub struct Diff {
@@ -80,23 +73,6 @@ impl Diff {
 		}
 	}
 
-	pub fn raw(&self) -> *mut git_diff { self.raw }
-
-	pub fn stats(&self) -> Result<DiffStats, Error> {
-		let mut raw_stats = 0 as *mut git_diff_stats;
-		unsafe {
-			let rc = git_diff_get_stats(&mut raw_stats, self.raw);
-			match rc {
-				n if n < 0 => {
-					Err(Error::last_error().unwrap_or_else(|| {
-						Error::from_str("an unknown error occurred")
-					}))
-				}
-				_ => Ok(DiffStats::from_raw(raw_stats))
-			}
-		}
-	}
-
 	pub fn num_deltas(&self) -> uint {
 		unsafe {
 			git_diff_num_deltas(self.raw as *const git_diff) as uint
@@ -108,49 +84,6 @@ impl Diff {
 impl Drop for Diff {
 	fn drop(&mut self) {
 		unsafe { git_diff_free(self.raw); }
-	}
-}
-
-pub struct DiffStats {
-	raw: *mut git_diff_stats,
-	marker1: marker::NoSend,
-	marker2: marker::NoSync,
-}
-
-impl DiffStats {
-	pub unsafe fn from_raw(raw: *mut git_diff_stats) -> DiffStats {
-		DiffStats {
-			raw: raw,
-			marker1: marker::NoSend,
-			marker2: marker::NoSync,
-		}
-	}
-
-	pub fn raw(&self) -> *mut git_diff_stats { self.raw }
-
-	pub fn deletions(&self) -> uint {
-		unsafe {
-			git_diff_stats_deletions(self.raw as *const git_diff_stats) as uint
-		}
-	}
-
-	pub fn files_changed(&self) -> uint {
-		unsafe {
-			git_diff_stats_files_changed(self.raw as *const git_diff_stats) as uint
-		}
-	}
-
-	pub fn insertions(&self) -> uint {
-		unsafe {
-			git_diff_stats_insertions(self.raw as *const git_diff_stats) as uint
-		}
-	}
-}
-
-#[unsafe_destructor]
-impl Drop for DiffStats {
-	fn drop(&mut self) {
-		unsafe { git_diff_stats_free(self.raw) }
 	}
 }
 
@@ -174,26 +107,4 @@ pub fn diff_head_to_workdir(repo: &Repository) -> Result<Diff, Error> {
 	let head_commit = try!(repo.find_commit(head_oid));
 	let head_tree = try!(repo.find_tree(head_commit.tree_id()));
 	diff_tree_to_workdir_with_index(repo, &head_tree)
-}
-
-pub fn test<'a>() {
-	let path = os::getcwd();
-	// let repo = try!(Repository::open(&path));
-	let repo = box match Repository::open(&path) {
-		Ok(repo) => repo,
-		Err(e) => fail!("Unable to open repository: {}", e),
-	};
-	println!("Repo: {}", repo.state());
-
-	let diff = match diff_head_to_workdir(&*repo) {
-		Ok(diff) => diff,
-		Err(e) => fail!("Unable to calculate diff: {}", e),
-	};
-	println!("Computed diff");
-
-	let stats = match diff.stats() {
-		Ok(stats) => stats,
-		Err(e) => fail!("Failed to obtain diff stats: {}", e),
-	};
-	println!("Insertions: {}\nDeletions: {}\nFiles Changed: {}", stats.insertions(), stats.deletions(), stats.files_changed());
 }
