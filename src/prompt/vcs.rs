@@ -23,7 +23,7 @@ pub fn vcs_info() -> Result<VCSInfo, Error>
 	};
 
 	Ok(VCSInfo {
-		clean: diff.num_deltas() > 0,
+		clean: diff.num_deltas() == 0,
 		branch: current_branch.to_string(),
 	})
 }

@@ -8,7 +8,6 @@ prompt_ben_precmd() {
 	local stop=$EPOCHSECONDS
 	local start=${cmd_timestamp:-$stop}
 	local elapsed=$(($stop-$start))
-	# echo $elapsed
 
 	local preprompt="$(prompt_ben precmd --exec-time=${elapsed})"
 	print -P $preprompt

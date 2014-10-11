@@ -8,6 +8,7 @@ use super::vcs::vcs_info;
 
 pub fn preexec(command: &str)
 {
+	// I think prezto does this
 	//print!("\x1B]0;{}: {}\x07", os::getcwd().display(), command);
 }
 
