@@ -38,7 +38,7 @@ pub fn precmd(execution_seconds: i64) {
 		preprompt.push_str(term::foreground(time.as_slice(), config::COLOR_EXEC_TIME).as_slice());
 	}
 
-	println!("{}", preprompt);
+	println!("\n{}", preprompt);
 }
 
 pub fn prompt(exit_status: int) {

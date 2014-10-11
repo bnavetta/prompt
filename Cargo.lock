@@ -1,6 +1,6 @@
 [root]
 name = "prompt_ben"
-version = "0.0.1"
+version = "1.0.0"
 dependencies = [
  "docopt_macros 0.6.4 (git+git://github.com/docopt/docopt.rs#21ce1190ef7631f71e52de5e13eb4d131564b82e)",
  "git2 0.0.1 (git+git://github.com/alexcrichton/git2-rs#c01b0b279470552c48cf7f902ae5baf132df0a6d)",
