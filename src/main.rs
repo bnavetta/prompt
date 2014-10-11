@@ -29,8 +29,6 @@ fn main()
 {
 	let args: Args = FlagParser::parse().unwrap_or_else(|e| e.exit());
 
-    prompt::git::test();
-
     if args.flag_version {
         println!("prompt {}.{}.{}{}",
             env!("CARGO_PKG_VERSION_MAJOR"),

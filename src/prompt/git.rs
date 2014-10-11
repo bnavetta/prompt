@@ -1,18 +1,12 @@
 #![allow(non_camel_case_types)]
 
-extern crate libc;
-
-#[phase(plugin)] extern crate git2;
-extern crate git2;
-extern crate libgit2;
-
 use std::os;
 use std::kinds::marker;
-use self::libc::{c_void, c_char, c_int, c_uint, size_t, uint32_t, uint16_t};
+use super::libc::{c_void, c_char, c_int, c_uint, size_t, uint32_t, uint16_t};
 
 // https://github.com/rust-lang/rust/issues/17056
-use self::libgit2::{git_repository, git_tree, git_submodule_ignore_t, git_strarray, git_diff_file, git_off_t};
-use self::git2::{Repository, Tree, Error};
+use super::libgit2::{git_repository, git_tree, git_submodule_ignore_t, git_strarray, git_diff_file, git_off_t};
+use super::git2::{Repository, Tree, Error};
 
 pub enum git_diff {}
 pub enum git_diff_stats {}
@@ -175,33 +169,31 @@ pub fn diff_tree_to_workdir_with_index(repo: &Repository, tree: &Tree) -> Result
 	}
 }
 
-pub fn diff_head_to_workdir(repo: Repository) -> Result<Diff, Error> {
+pub fn diff_head_to_workdir(repo: &Repository) -> Result<Diff, Error> {
 	let head_oid = try!(repo.refname_to_id("HEAD"));
 	let head_commit = try!(repo.find_commit(head_oid));
 	let head_tree = try!(repo.find_tree(head_commit.tree_id()));
-	diff_tree_to_workdir_with_index(&repo, &head_tree)
+	diff_tree_to_workdir_with_index(repo, &head_tree)
 }
 
-pub fn test() {
+pub fn test<'a>() {
 	let path = os::getcwd();
 	// let repo = try!(Repository::open(&path));
-	let repo = match Repository::open(&path) {
+	let repo = box match Repository::open(&path) {
 		Ok(repo) => repo,
 		Err(e) => fail!("Unable to open repository: {}", e),
 	};
 	println!("Repo: {}", repo.state());
 
-	let diff = match diff_head_to_workdir(repo) {
+	let diff = match diff_head_to_workdir(&*repo) {
 		Ok(diff) => diff,
 		Err(e) => fail!("Unable to calculate diff: {}", e),
 	};
 	println!("Computed diff");
 
-	// let stats = match diff.stats() {
-		// Ok(stats) => stats,
-		// Err(e) => fail!("Failed to obtain diff stats: {}", e),
-	// };
-	// println!("Insertions: {}\nDeletions: {}\nFiles Changed: {}", stats.insertions(), stats.deletions(), stats.files_changed());
-
-	println!("There are {} deltas", diff.num_deltas());
+	let stats = match diff.stats() {
+		Ok(stats) => stats,
+		Err(e) => fail!("Failed to obtain diff stats: {}", e),
+	};
+	println!("Insertions: {}\nDeletions: {}\nFiles Changed: {}", stats.insertions(), stats.deletions(), stats.files_changed());
 }

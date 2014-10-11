@@ -45,5 +45,7 @@ pub fn prompt(exit_status: int) {
 }
 
 pub fn rprompt() {
+
+
 	print!("{}", term::foreground("hi", term::Green));
 }
