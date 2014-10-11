@@ -4,6 +4,7 @@ use std::time::duration::Duration;
 use super::config;
 use super::term;
 use super::util;
+use super::vcs::{VCSInfo, vcs_info};
 
 pub fn preexec(command: &str)
 {
@@ -45,7 +46,11 @@ pub fn prompt(exit_status: int) {
 }
 
 pub fn rprompt() {
-
-
-	print!("{}", term::foreground("hi", term::Green));
+	match vcs_info() {
+		Ok(info) => {
+			let color = if info.clean { config::COLOR_VCS_CLEAN } else { config::COLOR_VCS_DIRTY };
+			println!("{}", term::foreground(info.branch.as_slice(), color));
+		},
+		_ => {},
+	};
 }
