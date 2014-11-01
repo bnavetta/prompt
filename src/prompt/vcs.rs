@@ -16,6 +16,10 @@ pub fn vcs_info() -> Result<VCSInfo, Error>
 	let repo = try!(Repository::open(&path));
 	let status_list = try!(StatusList::new(&repo));
 
+	for entry in status_list.iter() {
+		println!("{} -> {}", entry.index_to_workdir().old_file().path(), entry.index_to_workdir().new_file().path());
+	}
+
 	let head_ref = try!(try!(repo.head()).resolve());
 	let current_branch = match head_ref.shorthand() {
 		Some(name) => name,

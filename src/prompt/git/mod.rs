@@ -51,6 +51,13 @@ impl StatusList {
 			StatusEntry::from_raw(raw::git_status_byindex(self.raw, idx as u64))
 		}
 	}
+
+	pub fn iter<'a>(&'a self) -> StatusEntryIterator<'a> {
+		StatusEntryIterator {
+			list: self,
+			index: 0
+		}
+	}
 }
 
 #[unsafe_destructor]
@@ -58,6 +65,25 @@ impl Drop for StatusList {
 	fn drop(&mut self) {
 		unsafe {
 			raw::git_status_list_free(self.raw);
+		}
+	}
+}
+
+pub struct StatusEntryIterator<'a> {
+	list: &'a StatusList,
+	index: uint,
+}
+
+impl<'a> Iterator<StatusEntry> for StatusEntryIterator<'a> {
+	fn next(&mut self) -> Option<StatusEntry> {
+		if(self.index < self.list.entry_count()) {
+			let result = Some(self.list.by_index(self.index));
+			self.index += 1;
+			result
+		}
+		else
+		{
+			None
 		}
 	}
 }
