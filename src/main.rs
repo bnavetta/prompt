@@ -1,4 +1,5 @@
 #![feature(unsafe_destructor)]
+#![allow(dead_code)]
 #![feature(phase)]
 extern crate serialize;
 #[phase(plugin)] extern crate docopt_macros;

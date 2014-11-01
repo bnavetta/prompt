@@ -1,7 +1,7 @@
 use std::os;
 
 use super::git2::{Repository, Error};
-use super::git::diff_head_to_workdir;
+use super::git::{StatusList};
 
 pub struct VCSInfo
 {
@@ -14,7 +14,7 @@ pub fn vcs_info() -> Result<VCSInfo, Error>
 	let path = os::getcwd();
 
 	let repo = try!(Repository::open(&path));
-	let diff = try!(diff_head_to_workdir(&repo));
+	let status_list = try!(StatusList::new(&repo));
 
 	let head_ref = try!(try!(repo.head()).resolve());
 	let current_branch = match head_ref.shorthand() {
@@ -23,7 +23,7 @@ pub fn vcs_info() -> Result<VCSInfo, Error>
 	};
 
 	Ok(VCSInfo {
-		clean: diff.num_deltas() == 0,
+		clean: status_list.entry_count() == 0,
 		branch: current_branch.to_string(),
 	})
 }

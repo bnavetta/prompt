@@ -2,45 +2,45 @@
 name = "prompt_ben"
 version = "1.0.0"
 dependencies = [
- "docopt_macros 0.6.4 (git+git://github.com/docopt/docopt.rs#21ce1190ef7631f71e52de5e13eb4d131564b82e)",
- "git2 0.0.1 (git+git://github.com/alexcrichton/git2-rs#c01b0b279470552c48cf7f902ae5baf132df0a6d)",
+ "docopt_macros 0.6.5 (git+git://github.com/docopt/docopt.rs)",
+ "git2 0.0.1 (git+git://github.com/alexcrichton/git2-rs)",
 ]
 
 [[package]]
 name = "docopt"
-version = "0.6.4"
-source = "git+git://github.com/docopt/docopt.rs#21ce1190ef7631f71e52de5e13eb4d131564b82e"
+version = "0.6.5"
+source = "git+git://github.com/docopt/docopt.rs#a73d89a8d953a135dc683080376c4e94501d9f79"
 
 [[package]]
 name = "docopt_macros"
-version = "0.6.4"
-source = "git+git://github.com/docopt/docopt.rs#21ce1190ef7631f71e52de5e13eb4d131564b82e"
+version = "0.6.5"
+source = "git+git://github.com/docopt/docopt.rs#a73d89a8d953a135dc683080376c4e94501d9f79"
 dependencies = [
- "docopt 0.6.4 (git+git://github.com/docopt/docopt.rs#21ce1190ef7631f71e52de5e13eb4d131564b82e)",
+ "docopt 0.6.5 (git+git://github.com/docopt/docopt.rs)",
 ]
 
 [[package]]
 name = "encoding"
 version = "0.1.0"
-source = "git+https://github.com/lifthrasiir/rust-encoding#ff55916fec8b5bf8667a74d5a060c8c951f28fe0"
+source = "git+https://github.com/lifthrasiir/rust-encoding#6daaad9f4c0fcde4525821032686090d6426c462"
 
 [[package]]
 name = "git2"
 version = "0.0.1"
-source = "git+git://github.com/alexcrichton/git2-rs#c01b0b279470552c48cf7f902ae5baf132df0a6d"
+source = "git+git://github.com/alexcrichton/git2-rs#35a0632e92d63de8218675a17cd81e15d0de44b4"
 dependencies = [
- "libgit2 0.0.1 (git+git://github.com/alexcrichton/git2-rs#c01b0b279470552c48cf7f902ae5baf132df0a6d)",
- "url 0.1.0 (git+https://github.com/servo/rust-url#55b18b796ef2cef5490069dd450c60c2cc2c0c1b)",
+ "libgit2 0.0.1 (git+git://github.com/alexcrichton/git2-rs)",
+ "url 0.1.0 (git+https://github.com/servo/rust-url)",
 ]
 
 [[package]]
 name = "libgit2"
 version = "0.0.1"
-source = "git+git://github.com/alexcrichton/git2-rs#c01b0b279470552c48cf7f902ae5baf132df0a6d"
+source = "git+git://github.com/alexcrichton/git2-rs#35a0632e92d63de8218675a17cd81e15d0de44b4"
 dependencies = [
- "libssh2-static-sys 0.0.1 (git+https://github.com/alexcrichton/libssh2-static-sys#80e71a3021618eb05656c58fb7c5ef5f12bc747f)",
- "link-config 0.0.1 (git+https://github.com/alexcrichton/link-config#0afbf50ba545ac379292b6040330f2903ca891d2)",
- "openssl-static-sys 0.0.1 (git+https://github.com/alexcrichton/openssl-static-sys#b01801397328924055fb1c7c87fd5bf18907e511)",
+ "libssh2-static-sys 0.0.1 (git+https://github.com/alexcrichton/libssh2-static-sys)",
+ "link-config 0.0.1 (git+https://github.com/alexcrichton/link-config)",
+ "openssl-static-sys 0.0.1 (git+https://github.com/alexcrichton/openssl-static-sys)",
 ]
 
 [[package]]
@@ -51,18 +51,18 @@ source = "git+https://github.com/alexcrichton/libssh2-static-sys#80e71a3021618eb
 [[package]]
 name = "link-config"
 version = "0.0.1"
-source = "git+https://github.com/alexcrichton/link-config#0afbf50ba545ac379292b6040330f2903ca891d2"
+source = "git+https://github.com/alexcrichton/link-config#7c56ef12c8a49bedb0357e2a50af9ba79bf0ae1b"
 
 [[package]]
 name = "openssl-static-sys"
 version = "0.0.1"
-source = "git+https://github.com/alexcrichton/openssl-static-sys#b01801397328924055fb1c7c87fd5bf18907e511"
+source = "git+https://github.com/alexcrichton/openssl-static-sys#2e1c50a7f35ef52ce38dbd405a175b6dccc0ebad"
 
 [[package]]
 name = "url"
 version = "0.1.0"
-source = "git+https://github.com/servo/rust-url#55b18b796ef2cef5490069dd450c60c2cc2c0c1b"
+source = "git+https://github.com/servo/rust-url#9142b86a812ac5bc886f76235585557d8e002246"
 dependencies = [
- "encoding 0.1.0 (git+https://github.com/lifthrasiir/rust-encoding#ff55916fec8b5bf8667a74d5a060c8c951f28fe0)",
+ "encoding 0.1.0 (git+https://github.com/lifthrasiir/rust-encoding)",
 ]
 
