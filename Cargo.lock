@@ -22,7 +22,7 @@ dependencies = [
 [[package]]
 name = "encoding"
 version = "0.1.0"
-source = "git+https://github.com/lifthrasiir/rust-encoding#6daaad9f4c0fcde4525821032686090d6426c462"
+source = "git+https://github.com/lifthrasiir/rust-encoding#a739425a3f3174a31fe38c158dcaf22ea1d856f4"
 
 [[package]]
 name = "git2"
