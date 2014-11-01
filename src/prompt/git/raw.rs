@@ -54,6 +54,7 @@ bitflags!  {
 * - GIT_STATUS_SHOW_WORKDIR_ONLY only gives status based on index to
 * working directory comparison, not comparing the index to the HEAD.
 */
+#[repr(C)]
 pub enum git_status_show_t {
 	GIT_STATUS_SHOW_INDEX_AND_WORKDIR = 0,
 	GIT_STATUS_SHOW_INDEX_ONLY        = 1,
@@ -112,30 +113,29 @@ pub enum git_status_show_t {
 * and GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS. Those options are bundled
 * together as `GIT_STATUS_OPT_DEFAULTS` if you want them as a baseline.
 */
-bitflags! {
-	#[repr(C)]
-	flags git_status_opt_t: uint32_t {
-		const GIT_STATUS_OPT_INCLUDE_UNTRACKED               = (1 << 0),
-		const GIT_STATUS_OPT_INCLUDE_IGNORED                 = (1 << 1),
-		const GIT_STATUS_OPT_INCLUDE_UNMODIFIED              = (1 << 2),
-		const GIT_STATUS_OPT_EXCLUDE_SUBMODULES              = (1 << 3),
-		const GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS          = (1 << 4),
-		const GIT_STATUS_OPT_DISABLE_PATHSPEC_MATCH          = (1 << 5),
-		const GIT_STATUS_OPT_RECURSE_IGNORED_DIRS            = (1 << 6),
-		const GIT_STATUS_OPT_RENAMES_HEAD_TO_INDEX           = (1 << 7),
-		const GIT_STATUS_OPT_RENAMES_INDEX_TO_WORKDIR        = (1 << 8),
-		const GIT_STATUS_OPT_SORT_CASE_SENSITIVELY           = (1 << 9),
-		const GIT_STATUS_OPT_SORT_CASE_INSENSITIVELY         = (1 << 10),
-		const GIT_STATUS_OPT_RENAMES_FROM_REWRITES           = (1 << 11),
-		const GIT_STATUS_OPT_NO_REFRESH                      = (1 << 12),
-		const GIT_STATUS_OPT_UPDATE_INDEX                    = (1 << 13),
-		const GIT_STATUS_OPT_INCLUDE_UNREADABLE              = (1 << 14),
-		const GIT_STATUS_OPT_INCLUDE_UNREADABLE_AS_UNTRACKED = (1 << 15),
-		const GIT_STATUS_OPT_DEFAULTS                        = GIT_STATUS_OPT_INCLUDE_IGNORED.bits
-															| GIT_STATUS_OPT_INCLUDE_UNTRACKED.bits
-															| GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS.bits
-	}
-}
+
+#[repr(C)]
+pub type git_status_opt_t = u32;
+
+pub const GIT_STATUS_OPT_INCLUDE_UNTRACKED: git_status_opt_t               = (1u << 0) as u32;
+pub const GIT_STATUS_OPT_INCLUDE_IGNORED: git_status_opt_t                 = (1u << 1) as u32;
+pub const GIT_STATUS_OPT_INCLUDE_UNMODIFIED: git_status_opt_t              = (1u << 2) as u32;
+pub const GIT_STATUS_OPT_EXCLUDE_SUBMODULES: git_status_opt_t              = (1u << 3) as u32;
+pub const GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS: git_status_opt_t          = (1u << 4) as u32;
+pub const GIT_STATUS_OPT_DISABLE_PATHSPEC_MATCH: git_status_opt_t          = (1u << 5) as u32;
+pub const GIT_STATUS_OPT_RECURSE_IGNORED_DIRS: git_status_opt_t            = (1u << 6) as u32;
+pub const GIT_STATUS_OPT_RENAMES_HEAD_TO_INDEX: git_status_opt_t           = (1u << 7) as u32;
+pub const GIT_STATUS_OPT_RENAMES_INDEX_TO_WORKDIR: git_status_opt_t        = (1u << 8) as u32;
+pub const GIT_STATUS_OPT_SORT_CASE_SENSITIVELY: git_status_opt_t           = (1u << 9) as u32;
+pub const GIT_STATUS_OPT_SORT_CASE_INSENSITIVELY: git_status_opt_t         = (1u << 10) as u32;
+pub const GIT_STATUS_OPT_RENAMES_FROM_REWRITES: git_status_opt_t           = (1u << 11) as u32;
+pub const GIT_STATUS_OPT_NO_REFRESH: git_status_opt_t                      = (1u << 12) as u32;
+pub const GIT_STATUS_OPT_UPDATE_INDEX: git_status_opt_t                    = (1u << 13) as u32;
+pub const GIT_STATUS_OPT_INCLUDE_UNREADABLE: git_status_opt_t              = (1u << 14) as u32;
+pub const GIT_STATUS_OPT_INCLUDE_UNREADABLE_AS_UNTRACKED: git_status_opt_t = (1u << 15) as u32;
+pub const GIT_STATUS_OPT_DEFAULTS: git_status_opt_t                        = GIT_STATUS_OPT_INCLUDE_IGNORED
+                                                                       | GIT_STATUS_OPT_INCLUDE_UNTRACKED
+                                                                       | GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS;
 
 #[repr(C)]
 pub struct git_status_options {
