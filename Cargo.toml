@@ -1,11 +1,23 @@
-[package]
-
-name = "prompt_ben"
-version = "1.1.0"
+[project]
+name = "prompt"
+version = "2.0.0"
+description = "Craft your shell prompt in Rust"
+homepage = "https://github.com/roguePanda/prompt"
+repository = "https://github.com/roguePanda/prompt.git"
+license = "Apache-2.0"
 authors = ["Ben Navetta <ben.navetta@gmail.com>"]
 
-[dependencies.docopt_macros]
-git = "git://github.com/docopt/docopt.rs"
+[lib]
+name = "prompt"
 
-[dependencies.git2]
-git = "git://github.com/alexcrichton/git2-rs"
+[[bin]]
+name = "prompt_ben"
+
+[dependencies]
+docopt = "*"
+docopt_macros = "*"
+git2 = "*"
+term = "*"
+
+[dependencies.nix]
+git = "https://github.com/carllerche/nix-rust.git"
