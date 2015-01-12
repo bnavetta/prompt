@@ -26,3 +26,10 @@ pub fn hostname() -> String {
 		}
 	}
 }
+
+pub fn is_ssh() -> bool {
+	match os::getenv("SSH_CONNECTION") {
+		Some(_) => true,
+		None    => false
+	}
+}
