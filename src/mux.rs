@@ -1,4 +1,5 @@
 //! Utilities for obtaining terminal multiplexer status
+#![allow(unstable)]
 use std::fmt;
 use std::os;
 
