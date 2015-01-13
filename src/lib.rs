@@ -1,11 +1,13 @@
 #[allow(unstable)]
 extern crate libc;
+extern crate git2;
 
 use std::os;
 
 pub mod mux;
 pub mod net;
 pub mod user;
+pub mod vcs;
 
 pub fn cwd() -> Path {
 	// TODO: path shortening?

@@ -11,4 +11,6 @@ fn main() {
 		prompt::user::username().unwrap());
 
 	println!("Happily running on {} in {}", prompt::net::hostname(), prompt::cwd().display());
+
+	prompt::vcs::test();
 }
