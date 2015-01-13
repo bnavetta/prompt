@@ -1,4 +1,6 @@
+#![feature(box_syntax)]
 #[allow(unstable)]
+
 extern crate libc;
 extern crate git2;
 

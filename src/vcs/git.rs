@@ -7,14 +7,6 @@ pub struct Git {
 }
 
 impl super::Vcs for Git {
-
-	fn from_directory(dir: &Path) -> Option<Git> {
-		match Repository::discover(dir) {
-			Ok(repo) => Some(Git { repo: repo }),
-			Err(_)   => None,
-		}
-	}
-
 	fn symbol(&self) -> &'static str {
 		"±"
 	}
@@ -68,5 +60,12 @@ impl super::Vcs for Git {
 		let head = self.repo.head().unwrap();
 		let branch = head.name().unwrap().slice_from(11); // remove the "refs/heads/" part
 		branch.to_string()
+	}
+}
+
+pub fn from_directory(dir: &Path) -> Option<Git> {
+	match Repository::discover(dir) {
+		Ok(repo) => Some(Git { repo: repo }),
+		Err(_)   => None,
 	}
 }

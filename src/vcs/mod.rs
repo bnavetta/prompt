@@ -1,11 +1,6 @@
 mod git;
 
 pub trait Vcs {
-	/// Create a `Vcs` instance in `dir`.
-	/// Returns `None` if initialization failed or the directory was not a
-	/// repository / working directory.
-	fn from_directory(dir: &Path) -> Option<Self>;
-
 	/// Returns `true` if there are uncommitted changes
 	fn has_changes(&self) -> bool;
 
@@ -17,6 +12,11 @@ pub trait Vcs {
 	fn symbol(&self) -> &'static str;
 }
 
-pub fn repo<V>(dir: &Path) -> Option<V> where V: Vcs {
-	Vcs::from_directory(dir)
+pub fn repo(dir: &Path) -> Option<Box<Vcs>> {
+	let git_repo = git::from_directory(dir);
+
+	match git_repo {
+		Some(repo) => Some(box repo as Box<Vcs>),
+		None       => None, // or try next vcs
+	}
 }
