@@ -1,4 +1,5 @@
 //! Utilities for determining remote connection information
+#![allow(unstable)]
 use std::ffi;
 use std::os;
 use std::str;

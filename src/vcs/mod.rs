@@ -1,6 +1,3 @@
-use std::error::Error;
-use std::os;
-
 mod git;
 
 pub trait Vcs {
@@ -22,11 +19,4 @@ pub trait Vcs {
 
 pub fn repo<V>(dir: &Path) -> Option<V> where V: Vcs {
 	Vcs::from_directory(dir)
-}
-
-pub fn test() {
-	let cwd = os::getcwd().unwrap();
-	let r: git::Git = repo(&cwd).unwrap();
-	println!("Changes? {}", r.has_changes());
-	println!("Synchronized? {}", r.is_synchronized());
 }

@@ -1,5 +1,5 @@
 //! Utilities for retrieving user information
-
+#![allow(unstable)]
 use std::ffi;
 use std::str;
 use libc;
