@@ -35,10 +35,10 @@ fn rprompt<W: io::Write>(t: &mut term::Terminal<W>) -> io::Result<()> {
 
 	if vcs.is_ok() {
 		let repo = vcs.unwrap();
-		let color = /*if repo.has_changes().unwrap() {
+		let color = if repo.has_changes().unwrap() {
 			term::color::RED
 		}
-		else*/ if !repo.is_synchronized().unwrap() {
+		else if !repo.is_synchronized().unwrap() {
 			term::color::YELLOW
 		}
 		else {
