@@ -1,15 +1,15 @@
 //! Utilities for obtaining terminal multiplexer status
-#![allow(unstable)]
 use std::fmt;
-use std::os;
+use std::env;
 
-#[derive(Show, Copy)]
+use self::Multiplexer::*;
+
 pub enum Multiplexer {
 	Tmux,
 	Screen
 }
 
-impl fmt::String for Multiplexer
+impl fmt::Display for Multiplexer
 {
 	fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
 		match *self {
@@ -21,28 +21,20 @@ impl fmt::String for Multiplexer
 
 /// Determine the currently-running terminal multiplexer, if any.
 pub fn multiplexer() -> Option<Multiplexer> {
-	match os::getenv("TERM") {
-		Some(term) => {
-			if term.as_slice() == "screen" {
-				match os::getenv("TMUX") {
-					Some(_) => Some(Multiplexer::Tmux),
-					None    => Some(Multiplexer::Screen)
-				}
-			}
-			else {
-				None
-			}
-		},
-		None => None
-	}
+	env::var("TERM").ok().and_then(|term| {
+		if &term[..] == "screen" {
+			Some(if env::var("TMUX").is_ok() { Tmux } else { Screen })
+		}
+		else {
+			None
+		}
+	})
 }
 
-/// Determine whether or not a terminal multiplexer is currently running. If
-/// knowing the specific multiplexer implementation is not required, this is
-/// more efficient than `multiplexer`
+/// Determine whether or not a terminal multiplexer is currently running.
 pub fn in_multiplexer() -> bool {
-	match os::getenv("TERM") {
-		Some(term) => if term.as_slice() == "screen" { true } else { false },
-		None       => false
+	match env::var("TERM") {
+		Ok(term) => if &term[..] == "screen" { true } else { false },
+		Err(_)   => false
 	}
 }

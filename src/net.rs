@@ -1,8 +1,6 @@
 //! Utilities for determining remote connection information
-#![allow(unstable)]
-use std::ffi;
-use std::os;
-use std::str;
+use std::ffi::CStr;
+use std::env;
 
 use libc;
 
@@ -14,23 +12,23 @@ mod native {
 	}
 }
 
-pub fn hostname() -> String {
-	let mut buf = [0 as libc::c_char; 255];
+pub fn hostname() -> Option<String> {
+	let mut buf: Vec<u8> = Vec::with_capacity(255);
 	unsafe {
-		if native::gethostname(buf.as_mut_ptr(), buf.len() as libc::size_t) == 0 {
-			String::from_str(
-				str::from_utf8(ffi::c_str_to_bytes(&buf.as_ptr())).unwrap()
-			)
+		buf.set_len(255);
+		if native::gethostname(buf.as_mut_ptr() as *mut libc::c_char, buf.len() as libc::size_t) == 0 {
+			let hostname = CStr::from_ptr(buf.as_ptr() as *const libc::c_char);
+			String::from_utf8(hostname.to_bytes().to_vec()).ok() // to_vec copies the buffer, which from_str does not copy
 		}
 		else {
-			panic!("gethostname() failed: {}", os::error_string(os::errno()));
+			None
 		}
 	}
 }
 
 pub fn is_ssh() -> bool {
-	match os::getenv("SSH_CONNECTION") {
-		Some(_) => true,
-		None    => false
+	match env::var("SSH_CONNECTION") {
+		Ok(_)  => true,
+		Err(_) => false
 	}
 }

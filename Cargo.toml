@@ -14,9 +14,6 @@ name = "prompt"
 name = "prompt_ben"
 
 [dependencies]
-docopt = "*"
-docopt_macros = "*"
+git2 = "*"
+libc = "*"
 term = "*"
-
-[dependencies.git2]
-git = "https://github.com/alexcrichton/git2-rs.git"
