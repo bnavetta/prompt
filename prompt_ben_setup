@@ -4,20 +4,11 @@
 #
 
 prompt_ben_precmd() {
-	# Based on pure.zsh
-	local stop=$EPOCHSECONDS
-	local start=${cmd_timestamp:-$stop}
-	local elapsed=$(($stop-$start))
-
-	local preprompt="$(prompt_ben precmd --exec-time=${elapsed})"
+	local preprompt="$(prompt_ben precmd)"
 	print -P $preprompt
-
-	# in case preexec isn't triggered
-	unset cmd_timestamp
 }
 
 prompt_ben_preexec() {
-	cmd_timestamp=$EPOCHSECONDS
 	# echo "Preexec triggered"
 }
 
@@ -32,9 +23,6 @@ prompt_ben_setup() {
 
 	# Load zsh hook functions
 	autoload -Uz add-zsh-hook
-
-	# Needed for execution timing
-	zmodload zsh/datetime
 
 	add-zsh-hook precmd prompt_ben_precmd
 	add-zsh-hook preexec prompt_ben_preexec
