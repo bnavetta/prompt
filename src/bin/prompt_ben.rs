@@ -29,7 +29,7 @@ fn main_prompt() {
 
 }
 
-fn rprompt<W: io::Write>(t: &mut term::Terminal<W>) -> io::Result<()> {
+fn rprompt(t: &mut term::StdoutTerminal) -> io::Result<()> {
 	let cwd = env::current_dir().unwrap();
 	let vcs = prompt::vcs::repo(&cwd);
 
