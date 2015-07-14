@@ -1,6 +1,3 @@
-// #![feature(std_misc)]
-// #![feature(path_relative_from)]
-
 extern crate libc;
 extern crate git2;
 
