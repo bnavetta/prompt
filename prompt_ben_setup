@@ -1,16 +1,25 @@
 # -*- mode: sh -*-
 # vim: set ft=sh
 #
-# Initialization script for my shell prompt
+# A prompt backed by http://github.com/roguePanda/prompt
 #
+# Authors:
+#    Ben Navetta <ben.navetta@gmail.com>
+#
+# Features
+#    - Fast backend written in Rust
+#    - Displays VCS status and branch in right prompt
+#    - Prompt character changes color to indicate command exit status
+#
+# Usage
+#    In ~/.zpreztorc:
+#      zstyle ':prezto:module:prompt' theme 'ben'
 
-prompt_ben_precmd() {
-	local preprompt="$(prompt_ben precmd)"
-	print -P $preprompt
-}
+# Load dependencies
+pmodload 'helper'
 
-prompt_ben_preexec() {
-	# echo "Preexec triggered"
+prompt_ben_rprompt() {
+    prompt_ben rprompt $(jobs -p | wc -l)
 }
 
 prompt_ben_setup() {
@@ -22,12 +31,8 @@ prompt_ben_setup() {
 
 	prompt_opts=(cr percent subst)
 
-	# Load zsh hook functions
-	autoload -Uz add-zsh-hook
-
-	add-zsh-hook precmd prompt_ben_precmd
-	add-zsh-hook preexec prompt_ben_preexec
-
-	PROMPT='$(prompt_ben prompt --exit=$?)'
-	RPROMPT='$(prompt_ben rprompt)'
+	PROMPT='$(prompt_ben prompt $?)'
+	RPROMPT='$(prompt_ben_rprompt)'
 }
+
+prompt_ben_setup "$@"

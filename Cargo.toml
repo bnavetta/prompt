@@ -16,4 +16,3 @@ name = "prompt_ben"
 [dependencies]
 git2 = "*"
 libc = "*"
-term = "*"
