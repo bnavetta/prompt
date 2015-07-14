@@ -25,7 +25,11 @@ impl Vcs for Git {
 		let branch_name = try!(self.current_branch());
 
 		let local_branch = try!(self.repo.find_branch(&branch_name, BranchType::Local));
-		let upstream_branch = try!(local_branch.upstream());
+		  // let upstream_branch = try!(local_branch.upstream());
+    let upstream_branch = match local_branch.upstream() {
+        Ok(branch) => branch,
+        Err(_) => return Ok(true), // config lookup fails if branch hasn't ever been pushed (and is therefore synchronized)
+    };
 
 		let local_commit = try!(local_branch.get().resolve());
 		let remote_commit = try!(upstream_branch.get().resolve());
