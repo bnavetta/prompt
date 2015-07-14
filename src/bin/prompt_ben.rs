@@ -66,15 +66,16 @@ fn rprompt(job_count: u32) -> io::Result<()> {
 
 	  if vcs.is_ok() {
 		    let repo = vcs.unwrap();
-		    let color = if repo.has_changes().unwrap() {
-			      "red"
-		    }
-		    else if !repo.is_synchronized().unwrap() {
-			      "yellow"
-		    }
-		    else {
-			      "green"
-		    };
+
+        let color = match repo.has_changes() {
+            Ok(true) | Err(_) => "red",
+            Ok(false) => {
+                match repo.is_synchronized() {
+                    Ok(false) | Err(_) => "yellow",
+                    Ok(true) => "green"
+                }
+            }
+        };
 
         print!("%F{{{}}}{}{}%f", color, repo.symbol(), repo.current_branch().unwrap());
 	  }
