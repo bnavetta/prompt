@@ -22,7 +22,7 @@ fn main_prompt(exit_status: i32) -> io::Result<()> {
 
     let in_mux = prompt::mux::in_multiplexer();
     if in_mux {
-        print!("%F{{cyan}}[%f");
+        print!("%F{{blue}}[%f");
     }
     else {
         print!("[");
@@ -35,7 +35,7 @@ fn main_prompt(exit_status: i32) -> io::Result<()> {
     print!("%F{{{}}}{}%f", host_color, prompt::net::hostname().unwrap());
 
     if in_mux {
-        print!("%F{{cyan}}]%f");
+        print!("%F{{blue}}]%f");
     }
     else {
         print!("]");
