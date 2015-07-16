@@ -1,5 +1,6 @@
 extern crate libc;
 extern crate git2;
+extern crate term;
 
 use std::env;
 use std::path::{Path, PathBuf};
@@ -8,6 +9,9 @@ pub mod mux;
 pub mod net;
 pub mod user;
 pub mod vcs;
+pub mod style;
+
+use style::StyledTerminal;
 
 pub fn cwd() -> String {
 	// TODO: path shortening?
