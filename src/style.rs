@@ -1,9 +1,10 @@
-use std::io::{Write, Result};
-use term;
+use std::io;
+use std::borrow::Cow;
 
 pub use self::Attribute::*;
 pub use self::Color::*;
 
+#[derive(Debug,Clone)]
 pub enum Color {
     Black,
     Red,
@@ -13,139 +14,125 @@ pub enum Color {
     Magenta,
     Cyan,
     White,
-    BrightBlack,
-    BrightRed,
-    BrightGreen,
-    BrightYellow,
-    BrightBlue,
-    BrightMagenta,
-    BrightCyan,
-    BrightWhite,
-    Other(u16)
+    Default,
+    Other(&'static str)
 }
 
 impl Color {
-    fn to_raw(&self) -> term::color::Color {
+    fn to_raw(&self) -> &'static str {
         match *self {
-            Black         => term::color::BLACK,
-            Red           => term::color::RED,
-            Green         => term::color::GREEN,
-            Yellow        => term::color::YELLOW,
-            Blue          => term::color::BLUE,
-            Magenta       => term::color::MAGENTA,
-            Cyan          => term::color::CYAN,
-            White         => term::color::WHITE,
-            BrightBlack   => term::color::BRIGHT_BLACK,
-            BrightRed     => term::color::BRIGHT_RED,
-            BrightGreen   => term::color::BRIGHT_GREEN,
-            BrightYellow  => term::color::BRIGHT_YELLOW,
-            BrightBlue    => term::color::BRIGHT_BLUE,
-            BrightMagenta => term::color::BRIGHT_MAGENTA,
-            BrightCyan    => term::color::BRIGHT_CYAN,
-            BrightWhite   => term::color::BRIGHT_WHITE,
-            Other(color)  => color as term::color::Color
+            Black         => "black",
+            Red           => "red",
+            Green         => "green",
+            Yellow        => "yellow",
+            Blue          => "blue",
+            Magenta       => "magenta",
+            Cyan          => "cyan",
+            White         => "white",
+            Default       => "default",
+            Other(color)  => color,
         }
     }
 }
 
+#[derive(Debug,Clone)]
 pub enum Attribute {
     Bold,
-    Dim,
-    Italic,
     Underline,
-    Blink,
     Standout,
-    Reverse,
     ForegroundColor(Color),
     BackgroundColor(Color)
 }
 
 impl Attribute {
-    fn as_attr(&self) -> term::Attr {
+    fn begin<'a>(&self) -> Cow<'a, str>{
         match *self {
-            Bold                   => term::Attr::Bold,
-            Dim                    => term::Attr::Dim,
-            Italic                 => term::Attr::Italic(true),
-            Underline              => term::Attr::Underline(true),
-            Blink                  => term::Attr::Blink,
-            Standout               => term::Attr::Standout(true),
-            Reverse                => term::Attr::Reverse,
-            ForegroundColor(ref color) => term::Attr::ForegroundColor(color.to_raw()),
-            BackgroundColor(ref color) => term::Attr::BackgroundColor(color.to_raw()),
+            Bold                       => "%B".into(),
+            Underline                  => "%U".into(),
+            Standout                   => "%S".into(),
+            ForegroundColor(ref color) => format!("%F{{{}}}", color.to_raw()).into(),
+            BackgroundColor(ref color) => format!("%K{{{}}}", color.to_raw()).into(),
+        }
+    }
+
+    fn end(&self) -> &'static str {
+        match *self {
+            Bold               => "%b",
+            Underline          => "%u",
+            Standout           => "%s",
+            ForegroundColor(_) => "%f",
+            BackgroundColor(_) => "%k",
         }
     }
 }
 
-pub struct StyledTerminal {
-    term: Box<term::StdoutTerminal>,
-}
-
-impl StyledTerminal {
-    pub fn new() -> Option<StyledTerminal> {
-        term::stdout().map(|t| StyledTerminal{ term: t })
-    }
-
-    pub fn style<'a>(&'a mut self) -> StyleBuilder<'a> {
-        StyleBuilder {
-            term: &mut *self.term,
-            attributes: Vec::new(),
-        }
+pub fn style() -> StyleBuilder {
+    StyleBuilder {
+        attributes: Vec::new()
     }
 }
 
-pub struct StyleBuilder<'term> {
-    term: &'term mut term::StdoutTerminal,
+pub struct StyleBuilder {
+
     attributes: Vec<Attribute>,
 }
 
-impl<'term> StyleBuilder<'term> {
-    pub fn attr(&'term mut self, attr: Attribute) -> &'term mut StyleBuilder {
+impl StyleBuilder {
+    pub fn attr(&mut self, attr: Attribute) -> &mut StyleBuilder {
         self.attributes.push(attr);
         self
     }
 
-    pub fn fg(&'term mut self, color: Color) -> &'term mut StyleBuilder {
+    pub fn fg(&mut self, color: Color) -> &mut StyleBuilder {
         self.attr(ForegroundColor(color))
     }
 
-    pub fn bg(&'term mut self, color: Color) -> &'term mut StyleBuilder {
+    pub fn bg(&mut self, color: Color) -> &mut StyleBuilder {
         self.attr(BackgroundColor(color))
     }
 
-    pub fn go(self) -> Result<StyleWriter<'term>> {
-        StyleWriter::new(self.term, self.attributes)
+    pub fn go(self) -> StyleWriter {
+        StyleWriter::new(self.attributes)
     }
 }
 
-pub struct StyleWriter<'term> {
-    term: &'term mut term::StdoutTerminal
+pub struct StyleWriter {
+    attributes: Vec<Attribute>,
 }
 
-impl<'term> StyleWriter<'term> {
-    fn new(term: &'term mut term::StdoutTerminal, attributes: Vec<Attribute>) -> Result<StyleWriter<'term>> {
-        for attr in attributes {
-            try!(term.attr(attr.as_attr()));
+impl StyleWriter {
+    fn new(attributes: Vec<Attribute>) ->StyleWriter {
+        print!("%{{");
+        for attr in attributes.iter() {
+            print!("{}", attr.begin());
         }
+        print!("%}}");
 
-        Ok(StyleWriter {
-            term: term
-        })
+        StyleWriter {
+            attributes: attributes
+        }
     }
 }
 
-impl <'term> Write for StyleWriter<'term> {
-    fn write(&mut self, buf: &[u8]) -> Result<usize> {
-        self.term.write(buf)
+impl io::Write for StyleWriter {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+       io::stdout().write(buf)
     }
 
-    fn flush(&mut self) -> Result<()> {
-        self.term.flush()
+    fn flush(&mut self) -> io::Result<()> {
+       io::stdout().flush()
     }
 }
 
-impl<'term> Drop for StyleWriter<'term> {
+impl Drop for StyleWriter {
     fn drop(&mut self) {
-        self.term.reset();
+        print!("%{{");
+        let mut attrs = self.attributes.to_vec();
+        attrs.reverse();
+        for attr in attrs {
+            print!("{}", attr.end())
+        }
+        print!("%}}");
     }
 }
 
