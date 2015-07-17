@@ -1,8 +1,8 @@
 use std::io;
 use std::borrow::Cow;
 
-pub use self::Attribute::*;
-pub use self::Color::*;
+use self::Color::*;
+use self::Attribute::*;
 
 #[derive(Debug,Clone)]
 pub enum Color {
@@ -91,8 +91,20 @@ impl StyleBuilder {
         self.attr(BackgroundColor(color))
     }
 
-    pub fn go(self) -> StyleWriter {
-        StyleWriter::new(self.attributes)
+    pub fn bold(&mut self) -> &mut StyleBuilder {
+        self.attr(Bold)
+    }
+
+    pub fn underline(&mut self) -> &mut StyleBuilder {
+        self.attr(Underline)
+    }
+
+    pub fn standout(&mut self) -> &mut StyleBuilder {
+        self.attr(Standout)
+    }
+
+    pub fn go(&self) -> StyleWriter {
+        StyleWriter::new(self.attributes.to_vec())
     }
 }
 
