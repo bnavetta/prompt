@@ -22,17 +22,17 @@ impl Vcs for Git {
 	}
 
 	fn is_synchronized(&self) -> VcsResult<bool> {
-		let branch_name = try!(self.current_branch());
+		let branch_name = r#try!(self.current_branch());
 
-		let local_branch = try!(self.repo.find_branch(&branch_name, BranchType::Local));
+		let local_branch = r#try!(self.repo.find_branch(&branch_name, BranchType::Local));
 		  // let upstream_branch = try!(local_branch.upstream());
     let upstream_branch = match local_branch.upstream() {
         Ok(branch) => branch,
         Err(_) => return Ok(true), // config lookup fails if branch hasn't ever been pushed (and is therefore synchronized)
     };
 
-		let local_commit = try!(local_branch.get().resolve());
-		let remote_commit = try!(upstream_branch.get().resolve());
+		let local_commit = local_branch.get().resolve()?;
+		let remote_commit = upstream_branch.get().resolve()?;
 
 		Ok(local_commit == remote_commit)
 	}
@@ -44,13 +44,13 @@ impl Vcs for Git {
 			.exclude_submodules(false)
 			.pathspec("**/*");
 
-		let statuses = try!(self.repo.statuses(Some(&mut opts)));
+		let statuses = self.repo.statuses(Some(&mut opts))?;
 
 		Ok(statuses.iter().filter(|e| e.status() != git2::Status::CURRENT).count() > 0)
 	}
 
 	fn current_branch(&self) -> VcsResult<String> {
-		let head = try!(self.repo.head());
+		let head = self.repo.head()?;
 		match head.name() {
 			Some(ref name) => Ok(name[11..].to_string()), // remove the "refs/heads/" part
 			None           => Err(Utf8Error),
@@ -59,6 +59,6 @@ impl Vcs for Git {
 }
 
 pub fn from_directory(dir: &Path) -> VcsResult<Git> {
-	let repo = try!(Repository::discover(dir));
+	let repo = Repository::discover(dir)?;
 	Ok(Git { repo: repo })
 }

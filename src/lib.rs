@@ -10,7 +10,7 @@ pub mod user;
 pub mod vcs;
 pub mod style;
 
-pub use style::style;
+pub use crate::style::style;
 
 pub fn cwd() -> String {
 	// TODO: path shortening?

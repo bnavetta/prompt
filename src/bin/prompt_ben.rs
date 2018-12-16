@@ -26,12 +26,12 @@ fn main_prompt(exit_status: i32) -> io::Result<()> {
     let in_mux = prompt::mux::in_multiplexer();
     {
         let mut w = prompt::style().fg(if in_mux { Color::Blue } else { Color::Default }).go();
-        try!(write!(w, "["));
+        write!(w, "[")?;
     }
 
     {
         let mut w = prompt::style().fg(Color::Magenta).go();
-        try!(write!(w, "{}", prompt::user::username().unwrap()));
+        write!(w, "{}", prompt::user::username().unwrap())?;
     }
 
     print!("@");
@@ -39,15 +39,15 @@ fn main_prompt(exit_status: i32) -> io::Result<()> {
     {
         let mut w = prompt::style().fg(if prompt::net::is_ssh() { ORANGE } else { Color::Yellow }).go();
 
-        try!(match prompt::net::hostname() {
+        match prompt::net::hostname() {
             Some(host) => write!(w, "{}", host),
             None       => write!(w, "localhost"),
-        });
+        }?;
     }
 
     {
         let mut w = prompt::style().fg(if in_mux { Color::Blue } else { Color::Default }).go();
-        try!(write!(w, "]"));
+        write!(w, "]")?;
     }
 
     if prompt::user::is_root() {
@@ -59,12 +59,12 @@ fn main_prompt(exit_status: i32) -> io::Result<()> {
 
     {
         let mut w = prompt::style().fg(Color::Blue).go();
-        try!(write!(w, "{} ", prompt::cwd()));
+        write!(w, "{} ", prompt::cwd())?;
     }
 
     {
         let mut w = prompt::style().fg(if exit_status == 0 { Color::Green } else { Color::Red }).bold().go();
-        try!(write!(w, "❯ "));
+        write!(w, "❯ ")?;
     }
 
     Ok(())
@@ -73,7 +73,7 @@ fn main_prompt(exit_status: i32) -> io::Result<()> {
 fn rprompt(job_count: u32) -> io::Result<()> {
     if job_count != 0 {
         let mut w = prompt::style().fg(Color::Cyan).go();
-        try!(write!(w, "⚙ "));
+        write!(w, "⚙ ")?;
     }
 
 	  let cwd = env::current_dir().unwrap();
@@ -93,12 +93,12 @@ fn rprompt(job_count: u32) -> io::Result<()> {
         };
 
         let mut w = prompt::style().fg(color).go();
-        try!(write!(w, "{}", repo.symbol()));
+        write!(w, "{}", repo.symbol())?;
 
-        try!(match repo.current_branch() {
+        match repo.current_branch() {
             Ok(branch) => write!(w, "{}", branch),
             Err(_)     => write!(w, "unknown"),
-        });
+        }?;
 	  }
 
 	  Ok(())

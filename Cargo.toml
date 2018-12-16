@@ -6,6 +6,7 @@ homepage = "https://github.com/roguePanda/prompt"
 repository = "https://github.com/roguePanda/prompt.git"
 license = "Apache-2.0"
 authors = ["Ben Navetta <ben.navetta@gmail.com>"]
+edition = "2018"
 
 [lib]
 name = "prompt"
