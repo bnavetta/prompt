@@ -16,8 +16,8 @@ pub fn vcs_info() -> Result<VCSInfo, Error>
 	let mut options = StatusOptions::defaults();
 	options.flags.remove(OPT_INCLUDE_IGNORED);
 
-	let repo = try!(Repository::open(&path));
-	let status_list = try!(StatusList::new(&repo, options));
+	let repo = Repository::open(&path)?;
+	let status_list = StatusList::new(&repo, options)?;
 
 	let head_ref = try!(try!(repo.head()).resolve());
 	let current_branch = match head_ref.shorthand() {

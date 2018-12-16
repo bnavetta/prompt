@@ -1,13 +1,11 @@
 //! Utilities for retrieving user information
 use std::env;
 
-use libc::funcs::posix88::unistd;
+use nix::unistd;
 
 /// Determine whether or not the current user is *effectively* root
 pub fn is_root() -> bool {
-	unsafe {
-		unistd::geteuid() == 0
-	}
+	unistd::geteuid().is_root()
 }
 
 pub fn username() -> Option<String> {

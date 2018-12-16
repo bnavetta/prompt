@@ -1,5 +1,5 @@
-extern crate libc;
 extern crate git2;
+extern crate nix;
 
 use std::env;
 use std::path::{Path, PathBuf};

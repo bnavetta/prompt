@@ -46,7 +46,7 @@ impl Vcs for Git {
 
 		let statuses = try!(self.repo.statuses(Some(&mut opts)));
 
-		Ok(statuses.iter().filter(|e| e.status() != git2::STATUS_CURRENT).count() > 0)
+		Ok(statuses.iter().filter(|e| e.status() != git2::Status::CURRENT).count() > 0)
 	}
 
 	fn current_branch(&self) -> VcsResult<String> {
