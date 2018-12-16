@@ -1,6 +1,3 @@
-extern crate git2;
-extern crate nix;
-
 use std::env;
 use std::path::{Path, PathBuf};
 
@@ -15,8 +12,8 @@ pub use crate::style::style;
 pub fn cwd() -> String {
 	// TODO: path shortening?
 
-	let home_dir = env::home_dir().unwrap();
-	let current_dir = env::current_dir().unwrap();
+	let home_dir = dirs::home_dir().unwrap_or(PathBuf::new());
+	let current_dir = env::current_dir().unwrap_or(PathBuf::new());
 
 	let cwd = if current_dir.starts_with(&home_dir) {
 		Path::new("~").join(without_prefix(&home_dir, &current_dir))

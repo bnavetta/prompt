@@ -17,3 +17,4 @@ name = "prompt_ben"
 [dependencies]
 git2 = "~0.8"
 nix = "~0.12"
+dirs = "1.0"
