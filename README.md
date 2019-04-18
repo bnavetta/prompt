@@ -1,4 +1,4 @@
-A prompt in [Rust](http://www.rust-lang.org). Because.
+A prompt in [Rust](http://www.rust-lang.org). So it's fast and stuff :)
 
 
 ## Redesign
