@@ -3,6 +3,8 @@ use std::fmt;
 use failure::{Error, ResultExt, format_err};
 use git2::{Repository, ReferenceType, Oid};
 
+const BRANCH_REF_PREFIX: &'static str = "refs/heads/";
+
 /// TODO: use Repository::state() to gracefully handle merging, rebasing, etc.
 
 /// Represents the HEAD reference of a Git repository. Depending on the current repository
@@ -24,14 +26,19 @@ impl fmt::Display for Head {
 pub fn get_head(repo: &Repository) -> Result<Head, Error> {
     let head = repo.head()?;
 
-    println!("Head name is {:?}", head.name());
-    println!("Branch? {}", head.is_branch());
-
-    match head.kind() {
-        Some(ReferenceType::Oid) => head.target().ok_or(format_err!("HEAD missing a target")).map(Head::Commit),
-        Some(ReferenceType::Symbolic) => head.symbolic_target().ok_or(format_err!("HEAD missing a symbolic target")).map(|b| Head::Branch(b.to_string())),
-        None => Err(format_err!("Unable to determine type of HEAD reference"))
+    if head.is_branch() {
+        let branch_name = head.name().ok_or(format_err!("Missing HEAD name"))?;
+        if branch_name.starts_with(BRANCH_REF_PREFIX) {
+            Ok(Head::Branch(branch_name[BRANCH_REF_PREFIX.len()..].to_string()))
+        } else {
+            Err(format_err!("Invalid branch reference {}", branch_name))
+        }
+    } else {
+        let commit_oid = head.target().ok_or(format_err!("HEAD missing a target"))?;
+        Ok(Head::Commit(commit_oid))
     }
+
+    // TODO: can we ever have a non-branch HEAD that isn't an Oid reference?
 }
 
 /// fetch_current does a fetch for the upstream of the currently-active branch
