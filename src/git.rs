@@ -1,3 +1,4 @@
+use std::cell::Cell;
 use std::fmt;
 
 use failure::{Error, ResultExt, format_err, ensure};
@@ -55,15 +56,20 @@ pub fn fetch_current(repo: &Repository) -> Result<(), Error> {
         let upstream_name = upstream.name()?.ok_or(format_err!("Non-UTF8 tracking branch"))?;
         ensure!(upstream_name.starts_with(remote_name), "Cannot determine upstream branch name");
         let upstream_branch_name = &upstream_name[(remote_name.len() + 1)..];
-        println!("Upstream is {} from {}", upstream_branch_name, remote_name);
+
+        let tip_ref_name = upstream.get().name().ok_or(format_err!("Non-UTF8 upstream reference"))?;
+        // Use a Cell so we can modify it from the callback
+        let upstream_oid = Cell::new(upstream.get().target().ok_or(format_err!("No upstream commit recorded"))?);
 
         let mut callbacks = RemoteCallbacks::new();
         callbacks.update_tips(|refname, old, new| {
-            println!("{} went from {} to {}", refname, old, new);
+            if refname == tip_ref_name {
+                // assert!(old == upstream_oid);
+                upstream_oid.set(new);
+            }
             true
         });
-        callbacks.credentials(|url, username, allowed_types| {
-            println!("Fetching credentials for {} using {:?}", url, username);
+        callbacks.credentials(|url, username, _allowed_types| {
             let config = repo.config()?;
 
             Cred::credential_helper(&config, url, username).or_else(|_| {
@@ -77,6 +83,10 @@ pub fn fetch_current(repo: &Repository) -> Result<(), Error> {
         let mut fetch_options = FetchOptions::new();
         fetch_options.update_fetchhead(false).remote_callbacks(callbacks);
         remote.fetch(&[upstream_branch_name], Some(&mut fetch_options), None)?;
+
+        let current_oid = branch.get().target().ok_or(format_err!("Could not find branch tip"))?;
+        let (ahead, behind) = repo.graph_ahead_behind(current_oid, upstream_oid.get())?;
+        println!("{} commits ahead, {} commits behind", ahead, behind);
 
         Ok(())
     } else {
