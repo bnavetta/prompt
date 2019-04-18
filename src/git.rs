@@ -18,7 +18,7 @@ impl fmt::Display for Head {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             &Head::Branch(ref branch) => branch.fmt(f),
-            &Head::Commit(ref commit) => commit.fmt(f),
+            &Head::Commit(ref commit) => write!(f, "{:.8}", commit),
         }
     }
 }
@@ -38,7 +38,7 @@ pub fn get_head(repo: &Repository) -> Result<Head, Error> {
         Ok(Head::Commit(commit_oid))
     }
 
-    // TODO: can we ever have a non-branch HEAD that isn't an Oid reference?
+    // TODO: can we ever have a non-branch HEAD that isn't a direct reference?
 }
 
 /// fetch_current does a fetch for the upstream of the currently-active branch
