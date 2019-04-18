@@ -1,7 +1,7 @@
 use std::fmt;
 
-use failure::{Error, ResultExt, format_err};
-use git2::{Repository, ReferenceType, Oid};
+use failure::{Error, ResultExt, format_err, ensure};
+use git2::{Repository, ReferenceType, Oid, BranchType, Reference, Remote, FetchOptions, RemoteCallbacks, Cred};
 
 const BRANCH_REF_PREFIX: &'static str = "refs/heads/";
 
@@ -41,9 +41,61 @@ pub fn get_head(repo: &Repository) -> Result<Head, Error> {
     // TODO: can we ever have a non-branch HEAD that isn't a direct reference?
 }
 
-/// fetch_current does a fetch for the upstream of the currently-active branch
+/// fetch_current does a fetch for the upstream of the currently-active branch. If HEAD
+/// does not point to a branch, nothing is done.
 pub fn fetch_current(repo: &Repository) -> Result<(), Error> {
-    let head = repo.head()?;
+    if let Head::Branch(branch_name) = get_head(repo)? {
+        let branch = repo.find_branch(&branch_name, BranchType::Local)?;
+        assert!(branch.is_head());
 
-    Ok(())
+        let upstream = branch.upstream()?;
+        let mut remote = find_remote(repo, upstream.get())?;
+
+        let remote_name = remote.name().ok_or(format_err!("Non-UTF8 remote name"))?;
+        let upstream_name = upstream.name()?.ok_or(format_err!("Non-UTF8 tracking branch"))?;
+        ensure!(upstream_name.starts_with(remote_name), "Cannot determine upstream branch name");
+        let upstream_branch_name = &upstream_name[(remote_name.len() + 1)..];
+        println!("Upstream is {} from {}", upstream_branch_name, remote_name);
+
+        let mut callbacks = RemoteCallbacks::new();
+        callbacks.update_tips(|refname, old, new| {
+            println!("{} went from {} to {}", refname, old, new);
+            true
+        });
+        callbacks.credentials(|url, username, allowed_types| {
+            println!("Fetching credentials for {} using {:?}", url, username);
+            let config = repo.config()?;
+
+            Cred::credential_helper(&config, url, username).or_else(|_| {
+                if let Some(username) = username {
+                    Cred::ssh_key_from_agent(username)
+                } else {
+                    Err(git2::Error::from_str("No username for querying SSH agent"))
+                }
+            })
+        });
+        let mut fetch_options = FetchOptions::new();
+        fetch_options.update_fetchhead(false).remote_callbacks(callbacks);
+        remote.fetch(&[upstream_branch_name], Some(&mut fetch_options), None)?;
+
+        Ok(())
+    } else {
+        Ok(())
+    }
+}
+
+fn find_remote<'repo>(repo: &'repo Repository, tracking_reference: &Reference<'repo>) -> Result<Remote<'repo>, Error> {
+    let ref_name = tracking_reference.name().ok_or(format_err!("Non-UTF8 name for upstream tracking branch"))?;
+
+    for remote_name in repo.remotes()?.iter().flatten() {
+        let remote = repo.find_remote(&remote_name)?;
+
+        for refspec in remote.refspecs() {
+            if refspec.dst_matches(ref_name) {
+                return Ok(remote);
+            }
+        }
+    }
+
+    Err(format_err!("Unable to find remote"))
 }

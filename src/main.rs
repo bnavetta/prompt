@@ -54,4 +54,7 @@ pub fn main() {
     let repo = Repository::discover(".").unwrap();
     let head = self::git::get_head(&repo).unwrap();
     println!("HEAD = {}", head);
+    if let Err(e) = git::fetch_current(&repo) {
+        println!("Error fetching: {}", e);
+    }
 }
