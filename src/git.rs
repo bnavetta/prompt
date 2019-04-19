@@ -2,7 +2,10 @@ use std::cell::Cell;
 use std::fmt;
 
 use failure::{ensure, format_err, Error, ResultExt};
-use git2::{BranchType, Cred, FetchOptions, Oid, Reference, Remote, RemoteCallbacks, Repository};
+use git2::{
+    BranchType, Cred, FetchOptions, Oid, Reference, Remote, RemoteCallbacks, Repository, Status,
+    StatusOptions,
+};
 
 const BRANCH_REF_PREFIX: &'static str = "refs/heads/";
 
@@ -186,4 +189,23 @@ fn find_remote<'repo>(
     }
 
     Ok(None)
+}
+
+pub fn is_dirty(repo: &Repository) -> Result<bool, Error> {
+    let dirty_status = Status::INDEX_NEW
+        | Status::INDEX_MODIFIED
+        | Status::INDEX_DELETED
+        | Status::INDEX_RENAMED
+        | Status::INDEX_TYPECHANGE
+        | Status::WT_NEW
+        | Status::WT_MODIFIED
+        | Status::WT_DELETED
+        | Status::WT_TYPECHANGE
+        | Status::WT_RENAMED
+        | Status::CONFLICTED;
+
+    let statuses = repo.statuses(Some(StatusOptions::new().include_untracked(true)))?;
+    Ok(statuses
+        .iter()
+        .any(|se| se.status().intersects(dirty_status)))
 }

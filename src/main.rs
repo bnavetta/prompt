@@ -1,7 +1,7 @@
 use std::env;
 use std::path::Path;
 
-use ansi_term::Color::{Blue, Cyan, Green, Purple, White, Yellow};
+use ansi_term::Color::{Blue, Cyan, Green, Purple, Red, White, Yellow};
 use ansi_term::{ANSIString, ANSIStrings, Color};
 use git2::Repository;
 use tico::tico;
@@ -55,12 +55,9 @@ pub fn main() {
     // Git info
     let repo = Repository::discover(".").unwrap();
     let head = self::git::get_head(&repo).unwrap();
-    // TODO: dirty status
-    let head_str = match head {
-        self::git::Head::Branch(branch) => Green.paint(branch),
-        self::git::Head::Commit(commit) => Purple.paint(format!("{:.8}", commit)),
-    };
-    parts.push(head_str);
+    let dirty = self::git::is_dirty(&repo).unwrap();
+    let head_color = if dirty { Red } else { Green };
+    parts.push(head_color.paint(format!("{}", head)));
 
     let (ahead, behind) = git::fetch_current(&repo).unwrap();
     if ahead > 0 {
