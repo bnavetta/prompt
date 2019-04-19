@@ -129,45 +129,6 @@ pub fn fetch_current(repo: &Repository) -> Result<(usize, usize), Error> {
     } else {
         Ok((0, 0))
     }
-
-    // if let Some((upstream, remote)) = current_upstream(repo)? {
-    //     let remote_name = remote.name().ok_or(format_err!("Non-UTF8 remote name"))?;
-    //     let upstream_name = upstream.name()?.ok_or(format_err!("Non-UTF8 tracking branch"))?;
-    //     ensure!(upstream_name.starts_with(remote_name), "Cannot determine upstream branch name");
-    //     let upstream_branch_name = &upstream_name[(remote_name.len() + 1)..];
-
-    //     let tip_ref_name = upstream.get().name().ok_or(format_err!("Non-UTF8 upstream reference"))?;
-    //     // Use a Cell so we can modify it from the callback
-    //     let upstream_oid = Cell::new(upstream.get().target().ok_or(format_err!("No upstream commit recorded"))?);
-
-    //     let mut callbacks = RemoteCallbacks::new();
-    //     callbacks.update_tips(|refname, old, new| {
-    //         if refname == tip_ref_name {
-    //             // assert!(old == upstream_oid);
-    //             upstream_oid.set(new);
-    //         }
-    //         true
-    //     });
-    //     callbacks.credentials(|url, username, _allowed_types| {
-    //         let config = repo.config()?;
-
-    //         Cred::credential_helper(&config, url, username).or_else(|_| {
-    //             if let Some(username) = username {
-    //                 Cred::ssh_key_from_agent(username)
-    //             } else {
-    //                 Err(git2::Error::from_str("No username for querying SSH agent"))
-    //             }
-    //         })
-    //     });
-    //     let mut fetch_options = FetchOptions::new();
-    //     fetch_options.update_fetchhead(false).remote_callbacks(callbacks);
-    //     remote.fetch(&[upstream_branch_name], Some(&mut fetch_options), None)?;
-
-    //     let current_oid = branch.get().target().ok_or(format_err!("Could not find branch tip"))?;
-    //     repo.graph_ahead_behind(current_oid, upstream_oid.get())
-    // } else {
-    //     Ok((0, 0))
-    // }
 }
 
 fn find_remote<'repo>(

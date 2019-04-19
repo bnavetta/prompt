@@ -1,70 +1,51 @@
-use std::env;
-use std::path::Path;
+#[macro_use]
+extern crate structopt;
 
-use ansi_term::Color::{Blue, Cyan, Green, Purple, Red, White, Yellow};
-use ansi_term::{ANSIString, ANSIStrings, Color};
-use git2::Repository;
-use tico::tico;
-use whoami;
+use structopt::StructOpt;
 
 mod git;
+mod preprompt;
+mod prompt;
+mod zsh;
 
-const MAX_UNSHORTENED_PATH_LEN: usize = 20;
-const GRAY: Color = Color::Fixed(242);
+#[derive(StructOpt)]
+enum PromptArgs {
+    #[structopt(name = "preprompt")]
+    /// Prints the preprompt line
+    Preprompt {
+        #[structopt(short = "f")]
+        /// Display full (expensive to compute) information
+        full: bool,
 
-fn in_ssh() -> bool {
-    env::var("SSH_CONNECTION").is_ok()
+        #[structopt(short = "c", default_value = "0")]
+        /// Duration of the last command execution, in seconds
+        command_duration: u64,
+    },
+
+    #[structopt(name = "prompt")]
+    /// Prints the main line of the prompt
+    Prompt {
+        #[structopt(short = "e", default_value = "0")]
+        /// The exit status of the last command run
+        exit_status: i32,
+    },
+
+    #[structopt(name = "zsh-config")]
+    /// Prints out ZSH configuration for the prompt
+    ZshConfig,
 }
 
-fn path() -> String {
-    if let Ok(current_dir) = env::current_dir() {
-        let resolved = match dirs::home_dir() {
-            Some(home_dir) => match current_dir.strip_prefix(home_dir) {
-                Ok(truncated) => Path::new("~").join(truncated),
-                Err(_) => current_dir,
-            },
-            None => current_dir,
-        };
-
-        let path = resolved.to_string_lossy();
-        if path.len() > MAX_UNSHORTENED_PATH_LEN {
-            tico(&path)
-        } else {
-            path.to_string()
-        }
-    } else {
-        String::new()
-    }
-}
+const ZSH_CONFIG: &'static str = include_str!("../prompt_ben.zsh");
 
 pub fn main() {
-    // Start with login info
-    let host_color = if in_ssh() { Purple } else { Yellow };
-    let mut parts = vec![
-        White.paint("["),
-        GRAY.paint(whoami::username()),
-        White.paint("@"),
-        host_color.paint(whoami::host()),
-        White.paint("] "),
-    ];
+    let args = PromptArgs::from_args();
 
-    // Path
-    parts.push(Blue.paint(path()));
-    parts.push(ANSIString::from(" "));
-
-    // Git info
-    let repo = Repository::discover(".").unwrap();
-    let head = self::git::get_head(&repo).unwrap();
-    let dirty = self::git::is_dirty(&repo).unwrap();
-    let head_color = if dirty { Red } else { Green };
-    parts.push(head_color.paint(format!("{}", head)));
-
-    let (ahead, behind) = git::fetch_current(&repo).unwrap();
-    if ahead > 0 {
-        parts.push(Cyan.paint("⇡"));
-    }
-    if behind > 0 {
-        parts.push(Cyan.paint("⇣"));
-    }
-    println!("{}", ANSIStrings(&parts));
+    match args {
+        PromptArgs::Prompt { exit_status } => prompt::display_prompt(exit_status),
+        PromptArgs::Preprompt {
+            full,
+            command_duration,
+        } => preprompt::display_preprompt(full, command_duration),
+        PromptArgs::ZshConfig => println!("{}", ZSH_CONFIG),
+    };
 }
