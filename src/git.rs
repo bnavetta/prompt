@@ -1,8 +1,8 @@
 use std::cell::Cell;
 use std::fmt;
 
-use failure::{Error, ResultExt, format_err, ensure};
-use git2::{Repository, ReferenceType, Oid, BranchType, Reference, Remote, FetchOptions, RemoteCallbacks, Cred};
+use failure::{ensure, format_err, Error, ResultExt};
+use git2::{BranchType, Cred, FetchOptions, Oid, Reference, Remote, RemoteCallbacks, Repository};
 
 const BRANCH_REF_PREFIX: &'static str = "refs/heads/";
 
@@ -12,7 +12,7 @@ const BRANCH_REF_PREFIX: &'static str = "refs/heads/";
 /// state, this could be the tip of a branch (e.g. master), or a specific commit.
 pub enum Head {
     Branch(String),
-    Commit(Oid)
+    Commit(Oid),
 }
 
 impl fmt::Display for Head {
@@ -30,7 +30,9 @@ pub fn get_head(repo: &Repository) -> Result<Head, Error> {
     if head.is_branch() {
         let branch_name = head.name().ok_or(format_err!("Missing HEAD name"))?;
         if branch_name.starts_with(BRANCH_REF_PREFIX) {
-            Ok(Head::Branch(branch_name[BRANCH_REF_PREFIX.len()..].to_string()))
+            Ok(Head::Branch(
+                branch_name[BRANCH_REF_PREFIX.len()..].to_string(),
+            ))
         } else {
             Err(format_err!("Invalid branch reference {}", branch_name))
         }
@@ -44,34 +46,57 @@ pub fn get_head(repo: &Repository) -> Result<Head, Error> {
 
 /// fetch_current does a fetch for the upstream of the currently-active branch. If HEAD
 /// does not point to a branch, nothing is done.
-pub fn fetch_current(repo: &Repository) -> Result<(), Error> {
+pub fn fetch_current(repo: &Repository) -> Result<(usize, usize), Error> {
     if let Head::Branch(branch_name) = get_head(repo)? {
         let branch = repo.find_branch(&branch_name, BranchType::Local)?;
         assert!(branch.is_head());
 
-        let upstream = branch.upstream()?;
-        let mut remote = find_remote(repo, upstream.get())?;
+        let tracking = match branch.upstream() {
+            Ok(upstream) => upstream,
+            Err(ref e) if e.code() == git2::ErrorCode::NotFound => return Ok((0, 0)),
+            Err(e) => return Err(e.into()),
+        };
+
+        let mut remote = match find_remote(repo, tracking.get())? {
+            Some(remote) => remote,
+            None => return Ok((0, 0)),
+        };
 
         let remote_name = remote.name().ok_or(format_err!("Non-UTF8 remote name"))?;
-        let upstream_name = upstream.name()?.ok_or(format_err!("Non-UTF8 tracking branch"))?;
-        ensure!(upstream_name.starts_with(remote_name), "Cannot determine upstream branch name");
-        let upstream_branch_name = &upstream_name[(remote_name.len() + 1)..];
+        let tracking_name = tracking
+            .name()?
+            .ok_or(format_err!("Non-UTF8 tracking branch"))?;
+        ensure!(
+            tracking_name.starts_with(remote_name),
+            "Cannot determine remote branch name for {}",
+            tracking_name
+        );
 
-        let tip_ref_name = upstream.get().name().ok_or(format_err!("Non-UTF8 upstream reference"))?;
+        let remote_branch = &tracking_name[(remote_name.len() + 1)..];
+
+        let tracking_ref = tracking.get();
+        let tracking_ref_name = tracking_ref.name().ok_or(format_err!(
+            "Reference name for {} is not UTF8",
+            tracking_name
+        ))?;
+
         // Use a Cell so we can modify it from the callback
-        let upstream_oid = Cell::new(upstream.get().target().ok_or(format_err!("No upstream commit recorded"))?);
+        let upstream_oid = Cell::new(
+            tracking_ref
+                .target()
+                .ok_or(format_err!("{} does not point to a commit", tracking_name))?,
+        );
 
         let mut callbacks = RemoteCallbacks::new();
         callbacks.update_tips(|refname, old, new| {
-            if refname == tip_ref_name {
-                // assert!(old == upstream_oid);
+            if refname == tracking_ref_name {
+                assert!(old == upstream_oid.get());
                 upstream_oid.set(new);
             }
             true
         });
         callbacks.credentials(|url, username, _allowed_types| {
             let config = repo.config()?;
-
             Cred::credential_helper(&config, url, username).or_else(|_| {
                 if let Some(username) = username {
                     Cred::ssh_key_from_agent(username)
@@ -80,32 +105,85 @@ pub fn fetch_current(repo: &Repository) -> Result<(), Error> {
                 }
             })
         });
-        let mut fetch_options = FetchOptions::new();
-        fetch_options.update_fetchhead(false).remote_callbacks(callbacks);
-        remote.fetch(&[upstream_branch_name], Some(&mut fetch_options), None)?;
 
-        let current_oid = branch.get().target().ok_or(format_err!("Could not find branch tip"))?;
-        let (ahead, behind) = repo.graph_ahead_behind(current_oid, upstream_oid.get())?;
-        println!("{} commits ahead, {} commits behind", ahead, behind);
+        remote.fetch(
+            &[remote_branch],
+            Some(
+                FetchOptions::new()
+                    .update_fetchhead(false)
+                    .remote_callbacks(callbacks),
+            ),
+            None,
+        )?;
 
-        Ok(())
+        let local_oid = branch
+            .get()
+            .target()
+            .ok_or(format_err!("Branch does not point to a commit"))?;
+
+        let (ahead, behind) = repo.graph_ahead_behind(local_oid, upstream_oid.get())?;
+        Ok((ahead, behind))
     } else {
-        Ok(())
+        Ok((0, 0))
     }
+
+    // if let Some((upstream, remote)) = current_upstream(repo)? {
+    //     let remote_name = remote.name().ok_or(format_err!("Non-UTF8 remote name"))?;
+    //     let upstream_name = upstream.name()?.ok_or(format_err!("Non-UTF8 tracking branch"))?;
+    //     ensure!(upstream_name.starts_with(remote_name), "Cannot determine upstream branch name");
+    //     let upstream_branch_name = &upstream_name[(remote_name.len() + 1)..];
+
+    //     let tip_ref_name = upstream.get().name().ok_or(format_err!("Non-UTF8 upstream reference"))?;
+    //     // Use a Cell so we can modify it from the callback
+    //     let upstream_oid = Cell::new(upstream.get().target().ok_or(format_err!("No upstream commit recorded"))?);
+
+    //     let mut callbacks = RemoteCallbacks::new();
+    //     callbacks.update_tips(|refname, old, new| {
+    //         if refname == tip_ref_name {
+    //             // assert!(old == upstream_oid);
+    //             upstream_oid.set(new);
+    //         }
+    //         true
+    //     });
+    //     callbacks.credentials(|url, username, _allowed_types| {
+    //         let config = repo.config()?;
+
+    //         Cred::credential_helper(&config, url, username).or_else(|_| {
+    //             if let Some(username) = username {
+    //                 Cred::ssh_key_from_agent(username)
+    //             } else {
+    //                 Err(git2::Error::from_str("No username for querying SSH agent"))
+    //             }
+    //         })
+    //     });
+    //     let mut fetch_options = FetchOptions::new();
+    //     fetch_options.update_fetchhead(false).remote_callbacks(callbacks);
+    //     remote.fetch(&[upstream_branch_name], Some(&mut fetch_options), None)?;
+
+    //     let current_oid = branch.get().target().ok_or(format_err!("Could not find branch tip"))?;
+    //     repo.graph_ahead_behind(current_oid, upstream_oid.get())
+    // } else {
+    //     Ok((0, 0))
+    // }
 }
 
-fn find_remote<'repo>(repo: &'repo Repository, tracking_reference: &Reference<'repo>) -> Result<Remote<'repo>, Error> {
-    let ref_name = tracking_reference.name().ok_or(format_err!("Non-UTF8 name for upstream tracking branch"))?;
+fn find_remote<'repo>(
+    repo: &'repo Repository,
+    tracking_reference: &Reference<'repo>,
+) -> Result<Option<Remote<'repo>>, Error> {
+    let ref_name = tracking_reference
+        .name()
+        .ok_or(format_err!("Non-UTF8 name for upstream tracking branch"))?;
 
     for remote_name in repo.remotes()?.iter().flatten() {
         let remote = repo.find_remote(&remote_name)?;
 
         for refspec in remote.refspecs() {
             if refspec.dst_matches(ref_name) {
-                return Ok(remote);
+                return Ok(Some(remote));
             }
         }
     }
 
-    Err(format_err!("Unable to find remote"))
+    Ok(None)
 }

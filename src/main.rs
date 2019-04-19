@@ -1,7 +1,7 @@
 use std::env;
 use std::path::Path;
 
-use ansi_term::Color::{Blue, Purple, White, Yellow};
+use ansi_term::Color::{Blue, Cyan, Purple, White, Yellow};
 use ansi_term::{ANSIStrings, Color};
 use git2::Repository;
 use tico::tico;
@@ -54,7 +54,16 @@ pub fn main() {
     let repo = Repository::discover(".").unwrap();
     let head = self::git::get_head(&repo).unwrap();
     println!("HEAD = {}", head);
-    if let Err(e) = git::fetch_current(&repo) {
-        println!("Error fetching: {}", e);
+
+    let (ahead, behind) = git::fetch_current(&repo).unwrap();
+    let mut arrows = vec![];
+    if ahead > 0 {
+        arrows.push(Cyan.paint("⇡"));
     }
+    if behind > 0 {
+        arrows.push(Cyan.paint("⇣"));
+    }
+    println!("{}", ANSIStrings(&arrows));
+
+    println!("{} commits ahead, {} commits behind", ahead, behind);
 }
