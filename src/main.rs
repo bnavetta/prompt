@@ -1,8 +1,8 @@
 use std::env;
 use std::path::Path;
 
-use ansi_term::Color::{Blue, Cyan, Purple, White, Yellow};
-use ansi_term::{ANSIStrings, Color};
+use ansi_term::Color::{Blue, Cyan, Green, Purple, White, Yellow};
+use ansi_term::{ANSIString, ANSIStrings, Color};
 use git2::Repository;
 use tico::tico;
 use whoami;
@@ -38,32 +38,36 @@ fn path() -> String {
 }
 
 pub fn main() {
+    // Start with login info
     let host_color = if in_ssh() { Purple } else { Yellow };
-    let login_strings = &[
+    let mut parts = vec![
         White.paint("["),
         GRAY.paint(whoami::username()),
         White.paint("@"),
         host_color.paint(whoami::host()),
-        White.paint("]"),
+        White.paint("] "),
     ];
 
-    let path_string = Blue.paint(path());
+    // Path
+    parts.push(Blue.paint(path()));
+    parts.push(ANSIString::from(" "));
 
-    println!("{} {}", ANSIStrings(login_strings), path_string);
-
+    // Git info
     let repo = Repository::discover(".").unwrap();
     let head = self::git::get_head(&repo).unwrap();
-    println!("HEAD = {}", head);
+    // TODO: dirty status
+    let head_str = match head {
+        self::git::Head::Branch(branch) => Green.paint(branch),
+        self::git::Head::Commit(commit) => Purple.paint(format!("{:.8}", commit)),
+    };
+    parts.push(head_str);
 
     let (ahead, behind) = git::fetch_current(&repo).unwrap();
-    let mut arrows = vec![];
     if ahead > 0 {
-        arrows.push(Cyan.paint("⇡"));
+        parts.push(Cyan.paint("⇡"));
     }
     if behind > 0 {
-        arrows.push(Cyan.paint("⇣"));
+        parts.push(Cyan.paint("⇣"));
     }
-    println!("{}", ANSIStrings(&arrows));
-
-    println!("{} commits ahead, {} commits behind", ahead, behind);
+    println!("{}", ANSIStrings(&parts));
 }
