@@ -1,6 +1,6 @@
 # Various bits from https://github.com/sindresorhus/pure
 
-PROMPT_CMD="/Users/ben/src/prompt/target/debug/prompt"
+PROMPT_CMD="%PROMPT_EXE%"
 
 prompt_ben_precmd() {
     local last_status=$?

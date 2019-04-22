@@ -41,7 +41,13 @@ fn path() -> String {
 }
 
 fn add_git_info<'a>(full: bool, parts: &mut Vec<ANSIString<'a>>) -> Result<(), Error> {
-    let repo = Repository::discover(".")?;
+    let repo = match Repository::discover(".") {
+        Ok(repo) => repo,
+        // Don't consider directories not being git repos an error, since it clutters up
+        // debug-mode output
+        Err(ref e) if e.code() == git2::ErrorCode::NotFound => return Ok(()),
+        Err(e) => return Err(e.into())
+    };
 
     let head = git::get_head(&repo)?;
     let is_dirty = git::is_dirty(&repo)?;

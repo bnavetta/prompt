@@ -1,3 +1,6 @@
+use std::env;
+use std::path::PathBuf;
+
 #[macro_use]
 extern crate structopt;
 
@@ -46,6 +49,10 @@ pub fn main() {
             full,
             command_duration,
         } => preprompt::display_preprompt(full, command_duration),
-        PromptArgs::ZshConfig => println!("{}", ZSH_CONFIG),
+        PromptArgs::ZshConfig => {
+            let prompt_exe = env::current_exe().unwrap_or(PathBuf::from(stringify!(cfg_attr!(crate_name))));
+            let config = ZSH_CONFIG.replace("%PROMPT_EXE%", &format!("{}", prompt_exe.display()));
+            println!("{}", config);
+        },
     };
 }

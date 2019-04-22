@@ -1,7 +1,7 @@
 use std::cell::Cell;
 use std::fmt;
 
-use failure::{ensure, format_err, Error, ResultExt};
+use failure::{ensure, format_err, Error};
 use git2::{
     BranchType, Cred, FetchOptions, Oid, Reference, Remote, RemoteCallbacks, Repository, Status,
     StatusOptions,
