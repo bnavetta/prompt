@@ -61,6 +61,10 @@ fn add_git_info<'a>(full: bool, parts: &mut Vec<ANSIString<'a>>) -> Result<(), E
     if full {
         let (ahead, behind) = git::fetch_current(&repo)?;
 
+        if ahead + behind > 0 {
+            parts.push(ANSIString::from(" "))
+        }
+
         if ahead > 0 {
             parts.push(Color::Cyan.paint(UP_ARROW_SYMBOL));
         }

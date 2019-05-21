@@ -1,6 +1,6 @@
 [project]
 name = "prompt_ben"
-version = "3.0.0"
+version = "3.1.0"
 description = "Rust shell prompt"
 homepage = "https://github.com/bnavetta/prompt"
 repository = "https://github.com/bnavetta/prompt.git"
