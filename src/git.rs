@@ -1,5 +1,7 @@
 use std::cell::Cell;
 use std::fmt;
+use std::process;
+use std::sync::atomic::{AtomicU32, Ordering};
 
 use failure::{ensure, format_err, Error};
 use git2::{
@@ -98,7 +100,16 @@ pub fn fetch_current(repo: &Repository) -> Result<(usize, usize), Error> {
             }
             true
         });
+
+        let credential_calls = AtomicU32::new(0);
         callbacks.credentials(|url, username, _allowed_types| {
+            // https://github.com/libgit2/libgit2/issues/3471
+            // libgit2 seems to get into an infinite loop sometimes when the upstream isn't in the SSH agent
+            if credential_calls.fetch_add(1, Ordering::SeqCst) > 50 {
+                // We're getting called from C, so panicking causes a double-panic.
+                eprintln!("Loop detected in git credential lookup");
+                process::exit(1);
+            }
             let config = repo.config()?;
             Cred::credential_helper(&config, url, username).or_else(|_| {
                 if let Some(username) = username {
