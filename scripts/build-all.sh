@@ -2,7 +2,7 @@
 
 # 1. Compile for macOS (assumes we're running on a macOS host)
 echo "Compiling for macOS..."
-cargo build --release --target x86_64-apple-darwin
+cargo build --release
 
 echo ""
 echo ""
