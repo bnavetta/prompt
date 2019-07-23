@@ -96,7 +96,7 @@ prompt_ben_setup() {
     typeset -g prompt_ben_preprompt="$($PROMPT_CMD preprompt)"
     typeset -g prompt_ben_prompt="$($PROMPT_CMD prompt)"
 
-    PROMPT='${prompt_ben_preprompt}${prompt_newline}${prompt_ben_prompt} '
+    PROMPT='${prompt_ben_preprompt}${prompt_newline}%{$(iterm2_prompt_mark)%}${prompt_ben_prompt} '
 
     unset ZSH_THEME
 }
