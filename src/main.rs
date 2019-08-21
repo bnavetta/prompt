@@ -1,7 +1,6 @@
 use std::env;
 use std::path::PathBuf;
 
-#[macro_use]
 extern crate structopt;
 
 use structopt::StructOpt;
