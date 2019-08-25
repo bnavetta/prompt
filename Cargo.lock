@@ -359,7 +359,7 @@ dependencies = [
 
 [[package]]
 name = "prompt_ben"
-version = "3.1.4"
+version = "3.1.6"
 dependencies = [
  "ansi_term 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "curl-sys 0.4.20 (registry+https://github.com/rust-lang/crates.io-index)",

@@ -76,10 +76,10 @@ prompt_ben_preexec() {
     typeset -ig prompt_ben_command_timestamp=$EPOCHSECONDS
 }
 
-prompt_ben_setup() {
-    # enable substitution in prompt environment variables
-    setopt promptsubst
+# enable substitution in prompt environment variables
+setopt promptsubst
 
+prompt_ben_setup() {
     # Prevent percentage showing up if output doesn't end with a newline.
     export PROMPT_EOL_MARK=''
 
@@ -99,10 +99,12 @@ prompt_ben_setup() {
     typeset -g prompt_ben_preprompt="$($PROMPT_CMD preprompt)"
     typeset -g prompt_ben_prompt="$($PROMPT_CMD prompt)"
 
-    # Avoids an undefined variable error by defaulting to an empty string
-    typeset -g prompt_ben_iterm2_mark="${iterm2_prompt_mark:-}"
-    
-    PROMPT='${prompt_ben_preprompt}${prompt_newline}%{$(prompt_ben_iterm2_mark)%}${prompt_ben_prompt} '
+    # Avoids an undefined variable error on systems not using iTerm2
+    if [ "x$TERM_PROGRAM" = "iTerm.app" ]; then
+        PROMPT='${prompt_ben_preprompt}${prompt_newline}%{$(iterm2_prompt_mark)%}${prompt_ben_prompt} '
+    else
+        PROMPT='${prompt_ben_preprompt}${prompt_newline}${prompt_ben_prompt} '
+    fi
 
     unset ZSH_THEME
 }
