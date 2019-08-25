@@ -77,6 +77,9 @@ prompt_ben_preexec() {
 }
 
 prompt_ben_setup() {
+    # enable substitution in prompt environment variables
+    setopt promptsubst
+
     # Prevent percentage showing up if output doesn't end with a newline.
     export PROMPT_EOL_MARK=''
 
@@ -96,7 +99,10 @@ prompt_ben_setup() {
     typeset -g prompt_ben_preprompt="$($PROMPT_CMD preprompt)"
     typeset -g prompt_ben_prompt="$($PROMPT_CMD prompt)"
 
-    PROMPT='${prompt_ben_preprompt}${prompt_newline}%{$(iterm2_prompt_mark)%}${prompt_ben_prompt} '
+    # Avoids an undefined variable error by defaulting to an empty string
+    typeset -g prompt_ben_iterm2_mark="${iterm2_prompt_mark:-}"
+    
+    PROMPT='${prompt_ben_preprompt}${prompt_newline}%{$(prompt_ben_iterm2_mark)%}${prompt_ben_prompt} '
 
     unset ZSH_THEME
 }
