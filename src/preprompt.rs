@@ -1,44 +1,19 @@
-use std::env;
 use std::io::{self, Write};
-use std::path::Path;
 use std::time::Duration;
 
 use ansi_term::{ANSIString, ANSIStrings, Color};
-use dirs;
 use failure::Error;
 use git2::Repository;
 use humantime::format_duration;
-use tico::tico;
 
 use super::git;
+use super::paths::current_directory;
 use super::zsh::ZSHEscaper;
 
 const COMMAND_TIME_THRESHOLD: Duration = Duration::from_secs(10);
-const MAX_UNSHORTENED_PATH_LEN: usize = 20;
 
-const UP_ARROW_SYMBOL: &'static str = "⇡";
-const DOWN_ARROW_SYMBOL: &'static str = "⇣";
-
-fn path() -> String {
-    if let Ok(current_dir) = env::current_dir() {
-        let resolved = match dirs::home_dir() {
-            Some(home_dir) => match current_dir.strip_prefix(home_dir) {
-                Ok(truncated) => Path::new("~").join(truncated),
-                Err(_) => current_dir,
-            },
-            None => current_dir,
-        };
-
-        let path = resolved.to_string_lossy();
-        if path.len() > MAX_UNSHORTENED_PATH_LEN {
-            tico(&path)
-        } else {
-            path.to_string()
-        }
-    } else {
-        String::new()
-    }
-}
+const UP_ARROW_SYMBOL: &str = "⇡";
+const DOWN_ARROW_SYMBOL: &str = "⇣";
 
 fn add_git_info<'a>(full: bool, parts: &mut Vec<ANSIString<'a>>) -> Result<(), Error> {
     let repo = match Repository::discover(".") {
@@ -46,7 +21,7 @@ fn add_git_info<'a>(full: bool, parts: &mut Vec<ANSIString<'a>>) -> Result<(), E
         // Don't consider directories not being git repos an error, since it clutters up
         // debug-mode output
         Err(ref e) if e.code() == git2::ErrorCode::NotFound => return Ok(()),
-        Err(e) => return Err(e.into())
+        Err(e) => return Err(e.into()),
     };
 
     let head = git::get_head(&repo)?;
@@ -78,7 +53,7 @@ fn add_git_info<'a>(full: bool, parts: &mut Vec<ANSIString<'a>>) -> Result<(), E
 }
 
 pub fn display_preprompt(full: bool, command_duration_secs: u64) {
-    let mut parts = vec![Color::Blue.paint(path())];
+    let mut parts = vec![Color::Blue.paint(current_directory())];
 
     if let Err(e) = add_git_info(full, &mut parts) {
         if cfg!(debug_assertions) {

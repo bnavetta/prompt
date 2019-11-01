@@ -9,7 +9,7 @@ use git2::{
     StatusOptions,
 };
 
-const BRANCH_REF_PREFIX: &'static str = "refs/heads/";
+const BRANCH_REF_PREFIX: &str = "refs/heads/";
 
 /// TODO: use Repository::state() to gracefully handle merging, rebasing, etc.
 
@@ -22,9 +22,9 @@ pub enum Head {
 
 impl fmt::Display for Head {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            &Head::Branch(ref branch) => branch.fmt(f),
-            &Head::Commit(ref commit) => write!(f, "{:.8}", commit),
+        match *self {
+            Head::Branch(ref branch) => branch.fmt(f),
+            Head::Commit(ref commit) => write!(f, "{:.8}", commit),
         }
     }
 }
@@ -33,7 +33,9 @@ pub fn get_head(repo: &Repository) -> Result<Head, Error> {
     let head = repo.head()?;
 
     if head.is_branch() {
-        let branch_name = head.name().ok_or(format_err!("Missing HEAD name"))?;
+        let branch_name = head
+            .name()
+            .ok_or_else(|| format_err!("Missing HEAD name"))?;
         if branch_name.starts_with(BRANCH_REF_PREFIX) {
             Ok(Head::Branch(
                 branch_name[BRANCH_REF_PREFIX.len()..].to_string(),
@@ -42,7 +44,9 @@ pub fn get_head(repo: &Repository) -> Result<Head, Error> {
             Err(format_err!("Invalid branch reference {}", branch_name))
         }
     } else {
-        let commit_oid = head.target().ok_or(format_err!("HEAD missing a target"))?;
+        let commit_oid = head
+            .target()
+            .ok_or_else(|| format_err!("HEAD missing a target"))?;
         Ok(Head::Commit(commit_oid))
     }
 
@@ -67,10 +71,12 @@ pub fn fetch_current(repo: &Repository) -> Result<(usize, usize), Error> {
             None => return Ok((0, 0)),
         };
 
-        let remote_name = remote.name().ok_or(format_err!("Non-UTF8 remote name"))?;
+        let remote_name = remote
+            .name()
+            .ok_or_else(|| format_err!("Non-UTF8 remote name"))?;
         let tracking_name = tracking
             .name()?
-            .ok_or(format_err!("Non-UTF8 tracking branch"))?;
+            .ok_or_else(|| format_err!("Non-UTF8 tracking branch"))?;
         ensure!(
             tracking_name.starts_with(remote_name),
             "Cannot determine remote branch name for {}",
@@ -80,16 +86,15 @@ pub fn fetch_current(repo: &Repository) -> Result<(usize, usize), Error> {
         let remote_branch = &tracking_name[(remote_name.len() + 1)..];
 
         let tracking_ref = tracking.get();
-        let tracking_ref_name = tracking_ref.name().ok_or(format_err!(
-            "Reference name for {} is not UTF8",
-            tracking_name
-        ))?;
+        let tracking_ref_name = tracking_ref
+            .name()
+            .ok_or_else(|| format_err!("Reference name for {} is not UTF8", tracking_name))?;
 
         // Use a Cell so we can modify it from the callback
         let upstream_oid = Cell::new(
             tracking_ref
                 .target()
-                .ok_or(format_err!("{} does not point to a commit", tracking_name))?,
+                .ok_or_else(|| format_err!("{} does not point to a commit", tracking_name))?,
         );
 
         let mut callbacks = RemoteCallbacks::new();
@@ -133,7 +138,7 @@ pub fn fetch_current(repo: &Repository) -> Result<(usize, usize), Error> {
         let local_oid = branch
             .get()
             .target()
-            .ok_or(format_err!("Branch does not point to a commit"))?;
+            .ok_or_else(|| format_err!("Branch does not point to a commit"))?;
 
         let (ahead, behind) = repo.graph_ahead_behind(local_oid, upstream_oid.get())?;
         Ok((ahead, behind))
@@ -148,7 +153,7 @@ fn find_remote<'repo>(
 ) -> Result<Option<Remote<'repo>>, Error> {
     let ref_name = tracking_reference
         .name()
-        .ok_or(format_err!("Non-UTF8 name for upstream tracking branch"))?;
+        .ok_or_else(|| format_err!("Non-UTF8 name for upstream tracking branch"))?;
 
     for remote_name in repo.remotes()?.iter().flatten() {
         let remote = repo.find_remote(&remote_name)?;

@@ -10,8 +10,9 @@ use super::zsh::ZSHEscaper;
 const GRAY: Color = Color::Fixed(242);
 const ORANGE: Color = Color::Fixed(166);
 
-const PROMPT_SYMBOL: &'static str = "❯";
-const ROOT_SYMBOL: &'static str = "#";
+// TODO: check if we're in a Linux virtual console and don't have nice characters
+const PROMPT_SYMBOL: &str = "❯";
+const ROOT_SYMBOL: &str = "#";
 
 /// Determine if we're running over a SSH connection
 fn in_ssh() -> bool {
@@ -25,7 +26,7 @@ fn is_root() -> bool {
     unistd::geteuid().is_root()
 }
 
-pub fn display_prompt<'a>(exit_status: i32) {
+pub fn display_prompt(exit_status: i32) {
     let host_color = if in_ssh() {
         Color::Purple
     } else {
@@ -41,18 +42,18 @@ pub fn display_prompt<'a>(exit_status: i32) {
     };
 
     let parts = &[
-            Color::White.paint("["),
-            GRAY.paint(whoami::username()),
-            Color::White.paint("@"),
-            host_color.paint(whoami::host()),
-            Color::White.paint("] "),
-            if is_root() {
-                prompt_color.paint(ROOT_SYMBOL)
-            } else {
-                ANSIString::from("")
-            },
-            prompt_color.paint(PROMPT_SYMBOL),
-        ];
+        Color::White.paint("["),
+        GRAY.paint(whoami::username()),
+        Color::White.paint("@"),
+        host_color.paint(whoami::hostname()),
+        Color::White.paint("] "),
+        if is_root() {
+            prompt_color.paint(ROOT_SYMBOL)
+        } else {
+            ANSIString::from("")
+        },
+        prompt_color.paint(PROMPT_SYMBOL),
+    ];
 
     let mut out = ZSHEscaper::new(io::stdout());
     let _ = write!(out, "{}", ANSIStrings(parts));

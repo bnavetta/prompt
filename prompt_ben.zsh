@@ -2,6 +2,10 @@
 
 PROMPT_CMD="%PROMPT_EXE%"
 
+prompt_ben_set_title() {
+    $PROMPT_CMD title
+}
+
 prompt_ben_precmd() {
     local last_status=$?
 
@@ -9,6 +13,9 @@ prompt_ben_precmd() {
     typeset -gi prompt_ben_command_duration
     (( prompt_ben_command_duration = EPOCHSECONDS - ${prompt_ben_command_timestamp:-$EPOCHSECONDS} ))
     unset prompt_pure_cmd_timestamp
+
+    # Update the title (should be quick and needs to echo to stdout)
+    prompt_ben_set_title
 
     # async updates
     prompt_ben_async_tasks
@@ -98,6 +105,8 @@ prompt_ben_setup() {
 
     typeset -g prompt_ben_preprompt="$($PROMPT_CMD preprompt)"
     typeset -g prompt_ben_prompt="$($PROMPT_CMD prompt)"
+
+    prompt_ben_set_title
 
     # Avoids an undefined variable error on systems not using iTerm2
     if [ "x$TERM_PROGRAM" = "iTerm.app" ]; then

@@ -1,13 +1,13 @@
 use std::env;
 use std::path::PathBuf;
 
-extern crate structopt;
-
 use structopt::StructOpt;
 
 mod git;
+mod paths;
 mod preprompt;
 mod prompt;
+mod title;
 mod zsh;
 
 #[derive(StructOpt)]
@@ -32,12 +32,16 @@ enum PromptArgs {
         exit_status: i32,
     },
 
+    #[structopt(name = "title")]
+    /// Updates the terminal title
+    Title,
+
     #[structopt(name = "zsh-config")]
     /// Prints out ZSH configuration for the prompt
     ZshConfig,
 }
 
-const ZSH_CONFIG: &'static str = include_str!("../prompt_ben.zsh");
+const ZSH_CONFIG: &str = include_str!("../prompt_ben.zsh");
 
 pub fn main() {
     let args = PromptArgs::from_args();
@@ -48,10 +52,12 @@ pub fn main() {
             full,
             command_duration,
         } => preprompt::display_preprompt(full, command_duration),
+        PromptArgs::Title => title::update_title(),
         PromptArgs::ZshConfig => {
-            let prompt_exe = env::current_exe().unwrap_or(PathBuf::from(stringify!(cfg_attr!(crate_name))));
+            let prompt_exe = env::current_exe()
+                .unwrap_or_else(|_| PathBuf::from(stringify!(cfg_attr!(crate_name))));
             let config = ZSH_CONFIG.replace("%PROMPT_EXE%", &format!("{}", prompt_exe.display()));
             println!("{}", config);
-        },
+        }
     };
 }
